@@ -42,8 +42,7 @@ document.querySelector("[data-theme-toggle]")?.addEventListener("click", () => {
 // the rest of the UI stays English. First paint is set by the inline bootstrap.
 function applyLang(lang: "en" | "de") {
   localStorage.setItem("lang", lang);
-  root.dataset.lang = lang;
-  root.lang = lang;
+  root.dataset.lang = lang; // document stays lang="en"; only fragments toggle
 }
 for (const btn of document.querySelectorAll<HTMLElement>("[data-set-lang]")) {
   btn.addEventListener("click", () => applyLang(btn.dataset.setLang === "de" ? "de" : "en"));

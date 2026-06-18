@@ -50,6 +50,8 @@ const jsonLd = article
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="theme-color" content="#070708" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="apple-touch-icon" href="/favicon.svg" />
+    <meta name="author" content={config.name} />
 
     {/* apply saved theme + language before paint to avoid a flash (mirrors the portfolio) */}
     <script is:inline>
@@ -67,14 +69,14 @@ const jsonLd = article
           .querySelector('meta[name="theme-color"]')
           ?.setAttribute("content", r.dataset.theme === "light" ? "#f4f4f6" : "#070708");
         const saved = localStorage.getItem("lang");
-        const lang =
+        // Only controls which fragments (tagline, legal) show — the document
+        // stays lang="en"; German fragments are marked lang="de" individually.
+        r.dataset.lang =
           saved === "en" || saved === "de"
             ? saved
             : navigator.language.toLowerCase().startsWith("de")
               ? "de"
               : "en";
-        r.dataset.lang = lang;
-        r.lang = lang;
       } catch {}
     </script>
 
@@ -96,6 +98,8 @@ const jsonLd = article
     <meta property="og:description" content={description} />
     <meta property="og:type" content={ogType} />
     <meta property="og:url" content={canonical} />
+    <meta property="og:locale" content="en" />
+    <meta property="og:site_name" content="TIL — Daniel Metzner" />
     <meta property="og:image" content={ogImage} />
     <meta property="og:image:width" content="1200" />
     <meta property="og:image:height" content="630" />
