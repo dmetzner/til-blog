@@ -1,0 +1,118 @@
+---
+import { config } from "../config";
+
+// Austrian legal pages (ECG/Mediengesetz + GDPR). Bilingual: the EN/DE toggle
+// shows the matching version (data-lang-en / data-lang-de). The German text is
+// the legally binding one; the English is a courtesy translation. The modal is
+// opened/closed by scripts/site.ts; email is assembled at runtime.
+---
+
+<div class="legal-overlay" data-legal-overlay hidden>
+  <div class="legal-panel" role="dialog" aria-modal="true" aria-label="Impressum / Imprint">
+    <button type="button" class="legal-close" data-close-legal aria-label="close">✕</button>
+
+    {/* ── IMPRESSUM ── */}
+    <div class="legal-body" data-legal="impressum" hidden>
+      <div data-lang-de>
+        <h2>Impressum</h2>
+        <p class="legal-dim">Offenlegung gemäß § 5 ECG und § 25 Mediengesetz.</p>
+        <p>
+          <b>{config.name}</b><br />
+          Graz, Österreich<br />
+          E-Mail: <a data-email-link href="#">E-Mail anzeigen</a>
+        </p>
+        <p class="legal-dim">
+          Dieses TIL-Blog ist ein persönliches Projekt und dient der Veröffentlichung kurzer
+          technischer Notizen.
+        </p>
+      </div>
+      <div data-lang-en>
+        <h2>Imprint</h2>
+        <p class="legal-dim">Disclosure pursuant to § 5 ECG and § 25 of the Austrian Media Act.</p>
+        <p>
+          <b>{config.name}</b><br />
+          Graz, Austria<br />
+          Email: <a data-email-link href="#">show email</a>
+        </p>
+        <p class="legal-dim">
+          This TIL blog is a personal project for publishing short technical notes.
+        </p>
+      </div>
+    </div>
+
+    {/* ── DATENSCHUTZ / PRIVACY ── */}
+    <div class="legal-body" data-legal="privacy" hidden>
+      <div data-lang-de>
+        <h2>Datenschutzerklärung</h2>
+        <p class="legal-dim">Stand: Juni 2026</p>
+
+        <h3>Hosting</h3>
+        <p>
+          Diese Seite wird über GitHub Pages (GitHub, Inc.) ausgeliefert. Beim Aufruf verarbeitet
+          GitHub technisch notwendige Zugriffsdaten (u. a. die IP-Adresse) in Server-Logfiles.
+        </p>
+
+        {
+          config.goatcounter && (
+            <>
+              <h3>Reichweitenmessung</h3>
+              <p>
+                Zur anonymen, cookielosen Reichweitenmessung wird GoatCounter eingesetzt. Erfasst
+                werden aggregierte Seitenaufrufe — ohne Cookies, ohne websiteübergreifendes Tracking
+                und ohne personenbezogene Profile. Rechtsgrundlage: berechtigtes Interesse an einer
+                datensparsamen Statistik (Art. 6 Abs. 1 lit. f DSGVO).
+              </p>
+            </>
+          )
+        }
+
+        <h3>Lokale Speicherung — keine Cookies</h3>
+        <p>
+          Theme- und Sprach-Einstellung werden ausschließlich lokal in deinem Browser (localStorage)
+          gespeichert. Es werden keine Cookies gesetzt.{!config.goatcounter && " Es werden keine Analyse- oder Tracking-Dienste eingesetzt."}
+        </p>
+
+        <h3>Deine Rechte &amp; Kontakt</h3>
+        <p>
+          Auskunft, Berichtigung und Löschung: <a data-email-link href="#">E-Mail anzeigen</a>.
+          Durch den Betreiber selbst werden keine personenbezogenen Daten gespeichert.
+        </p>
+      </div>
+      <div data-lang-en>
+        <h2>Privacy Policy</h2>
+        <p class="legal-dim">Last updated: June 2026 · The German version is legally binding.</p>
+
+        <h3>Hosting</h3>
+        <p>
+          This site is served via GitHub Pages (GitHub, Inc.). On access, GitHub processes
+          technically necessary access data (including your IP address) in server log files.
+        </p>
+
+        {
+          config.goatcounter && (
+            <>
+              <h3>Analytics</h3>
+              <p>
+                GoatCounter is used for anonymous, cookieless analytics. Only aggregated page views
+                are recorded — no cookies, no cross-site tracking, no personal profiles. Legal
+                basis: legitimate interest in privacy-friendly statistics (Art. 6(1)(f) GDPR).
+              </p>
+            </>
+          )
+        }
+
+        <h3>Local storage — no cookies</h3>
+        <p>
+          Your theme and language preferences are stored only locally in your browser
+          (localStorage). No cookies are set.{!config.goatcounter && " No analytics or tracking services are used."}
+        </p>
+
+        <h3>Your rights &amp; contact</h3>
+        <p>
+          Access, rectification and erasure: <a data-email-link href="#">show email</a>. The
+          operator itself stores no personal data.
+        </p>
+      </div>
+    </div>
+  </div>
+</div>

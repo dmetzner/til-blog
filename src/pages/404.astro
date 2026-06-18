@@ -1,0 +1,27 @@
+---
+import Duck from "../components/Duck.astro";
+import Base from "../layouts/Base.astro";
+---
+
+<Base title="404 · til" description="Page not found.">
+  <div class="notfound">
+    <Duck class="notfound-duck" gid="duck-404" />
+    <h1 class="lead"><span class="accent">404</span> — nothing here</h1>
+    <p class="lead-sub">That note doesn't exist (or wasn't published yet).</p>
+    <a class="back" href="/">← all notes</a>
+  </div>
+</Base>
+
+<style>
+  .notfound {
+    text-align: center;
+    padding-top: 24px;
+  }
+  .notfound-duck {
+    width: 96px;
+    margin: 0 auto 12px;
+  }
+  .notfound .lead-sub {
+    margin-bottom: 24px;
+  }
+</style>

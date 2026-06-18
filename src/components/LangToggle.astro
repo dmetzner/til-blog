@@ -1,0 +1,11 @@
+---
+// EN/DE toggle. Only the tagline (and the always-German legal pages) react to
+// it — the rest of the UI stays English. Active state + persistence handled in
+// scripts/site.ts; first paint is set by the inline bootstrap in Base.astro.
+---
+
+<div class="lang-toggle mono" role="group" aria-label="language">
+  <button type="button" data-set-lang="en">EN</button>
+  <span aria-hidden="true">/</span>
+  <button type="button" data-set-lang="de">DE</button>
+</div>

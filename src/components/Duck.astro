@@ -1,0 +1,31 @@
+---
+// The icon-pet — a rubber duck (the dev's debugging companion).
+// Ported from the portfolio's Duck.tsx. gid is unique per use so multiple
+// ducks on a page don't share a gradient def.
+interface Props {
+  class?: string;
+  gid?: string;
+}
+const { class: className = "", gid = "duck-grad" } = Astro.props;
+---
+
+<svg class={`duck ${className}`} viewBox="0 0 50 40" role="img" aria-label="duck">
+  <defs>
+    <linearGradient id={gid} x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#ffe15c"></stop>
+      <stop offset="1" stop-color="#f6b400"></stop>
+    </linearGradient>
+  </defs>
+  <path d="M9 20 L1 16 L4 27 Z" fill={`url(#${gid})`}></path>
+  <ellipse cx="21" cy="26" rx="15" ry="10.5" fill={`url(#${gid})`}></ellipse>
+  <circle cx="34" cy="14" r="8.5" fill={`url(#${gid})`}></circle>
+  <path d="M41 11 H49 L46 16.5 H41 Z" fill="#ef8b1f"></path>
+  <circle class="duck-eye" cx="35.5" cy="12" r="1.7" fill="#0a0a0f"></circle>
+  <path
+    d="M15 25 q6 6 13 1"
+    fill="none"
+    stroke="#b97f0a"
+    stroke-opacity="0.5"
+    stroke-width="2"
+    stroke-linecap="round"></path>
+</svg>

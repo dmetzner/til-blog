@@ -1,0 +1,10 @@
+node_modules
+dist
+.astro
+*.local
+.DS_Store
+.vscode/*
+!.vscode/extensions.json
+npm-debug.log*
+.idea
+*.tsbuildinfo

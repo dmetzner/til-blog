@@ -1,0 +1,47 @@
+---
+import { getCollection } from "astro:content";
+import Base from "../../layouts/Base.astro";
+import { fmtDate, postsForTagSlug, readingMinutes, tagCounts, tagSlug } from "../../lib/posts";
+
+export async function getStaticPaths() {
+  const posts = await getCollection("posts", ({ data }) => !data.draft);
+  // One route per distinct tag; carry the original label for display.
+  return tagCounts(posts).map(({ tag }) => ({
+    params: { tag: tagSlug(tag) },
+    props: { label: tag, posts: postsForTagSlug(posts, tagSlug(tag)) },
+  }));
+}
+
+const { label, posts } = Astro.props;
+---
+
+<Base title={`#${label} · til`} description={`TIL notes tagged ${label}.`}>
+  <h1 class="lead">
+    Tagged <span class="accent">#{label}</span>
+  </h1>
+  <p class="lead-sub">
+    {posts.length} note{posts.length === 1 ? "" : "s"}.
+  </p>
+
+  <ul class="post-list">
+    {
+      posts.map((post) => (
+        <li class="post-item">
+          <a href={`/posts/${post.id}/`}>
+            <span class="post-meta-row">
+              <time class="post-date" datetime={post.data.pubDate.toISOString()}>
+                {fmtDate(post.data.pubDate)}
+              </time>
+              <span class="dot" aria-hidden="true">·</span>
+              <span class="post-date">~{readingMinutes(post.body ?? "")} min</span>
+            </span>
+            <h2 class="post-title">{post.data.title}</h2>
+            <p class="post-desc">{post.data.description}</p>
+          </a>
+        </li>
+      ))
+    }
+  </ul>
+
+  <a class="back" href="/">← all notes</a>
+</Base>
