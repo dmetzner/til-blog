@@ -1,0 +1,22 @@
+---
+import { type PostLike, fmtDate, readingMinutes } from "../lib/posts";
+
+interface Props {
+  post: PostLike;
+}
+const { post } = Astro.props;
+---
+
+<li class="post-item">
+  <a href={`/posts/${post.id}/`}>
+    <span class="post-meta-row">
+      <time class="post-date" datetime={post.data.pubDate.toISOString()}>
+        {fmtDate(post.data.pubDate)}
+      </time>
+      <span class="dot" aria-hidden="true">·</span>
+      <span class="post-date">~{readingMinutes(post.body ?? "")} min</span>
+    </span>
+    <h2 class="post-title">{post.data.title}</h2>
+    <p class="post-desc">{post.data.description}</p>
+  </a>
+</li>

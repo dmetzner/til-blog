@@ -1,7 +1,8 @@
 ---
 import { getCollection } from "astro:content";
+import PostCard from "../../components/PostCard.astro";
 import Base from "../../layouts/Base.astro";
-import { fmtDate, postsForTagSlug, readingMinutes, tagCounts, tagSlug } from "../../lib/posts";
+import { postsForTagSlug, tagCounts, tagSlug } from "../../lib/posts";
 
 export async function getStaticPaths() {
   const posts = await getCollection("posts", ({ data }) => !data.draft);
@@ -24,23 +25,7 @@ const { label, posts } = Astro.props;
   </p>
 
   <ul class="post-list">
-    {
-      posts.map((post) => (
-        <li class="post-item">
-          <a href={`/posts/${post.id}/`}>
-            <span class="post-meta-row">
-              <time class="post-date" datetime={post.data.pubDate.toISOString()}>
-                {fmtDate(post.data.pubDate)}
-              </time>
-              <span class="dot" aria-hidden="true">·</span>
-              <span class="post-date">~{readingMinutes(post.body ?? "")} min</span>
-            </span>
-            <h2 class="post-title">{post.data.title}</h2>
-            <p class="post-desc">{post.data.description}</p>
-          </a>
-        </li>
-      ))
-    }
+    {posts.map((post) => <PostCard post={post} />)}
   </ul>
 
   <a class="back" href="/">← all notes</a>
