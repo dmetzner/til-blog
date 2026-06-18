@@ -63,6 +63,9 @@ const jsonLd = article
             : matchMedia("(prefers-color-scheme: light)").matches
               ? "light"
               : "dark";
+        document
+          .querySelector('meta[name="theme-color"]')
+          ?.setAttribute("content", r.dataset.theme === "light" ? "#f4f4f6" : "#070708");
         const saved = localStorage.getItem("lang");
         const lang =
           saved === "en" || saved === "de"

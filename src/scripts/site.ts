@@ -21,6 +21,9 @@ function applyPref(pref: Pref) {
   else localStorage.setItem(KEY, pref);
   root.dataset.themePref = pref;
   root.dataset.theme = pref === "system" ? systemTheme() : pref;
+  document
+    .querySelector('meta[name="theme-color"]')
+    ?.setAttribute("content", root.dataset.theme === "light" ? "#f4f4f6" : "#070708");
 }
 
 applyPref(storedPref());
@@ -99,6 +102,24 @@ shareBtn?.addEventListener("click", async () => {
     // clipboard blocked — leave the label as is
   }
 });
+
+// ── Code blocks: a copy button on each fenced block in a post.
+for (const pre of document.querySelectorAll<HTMLElement>(".prose pre")) {
+  const btn = document.createElement("button");
+  btn.type = "button";
+  btn.className = "code-copy mono";
+  btn.textContent = "copy";
+  btn.addEventListener("click", () => {
+    const code = pre.querySelector("code")?.textContent ?? pre.textContent ?? "";
+    navigator.clipboard?.writeText(code).then(() => {
+      btn.textContent = "copied ✓";
+      setTimeout(() => {
+        btn.textContent = "copy";
+      }, 1500);
+    });
+  });
+  pre.appendChild(btn);
+}
 
 // ── Legal modal (Impressum / Datenschutz).
 const overlay = document.querySelector<HTMLElement>("[data-legal-overlay]");
