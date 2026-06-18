@@ -10,8 +10,11 @@ interface Props {
   description?: string;
   /** Set on single posts → emits BlogPosting structured data + og:type=article. */
   article?: { published: Date; tags: string[] };
+  /** Paginated pages pass adjacent URLs → rel=prev/next for crawlers. */
+  prev?: string | undefined;
+  next?: string | undefined;
 }
-const { title, description = config.tagline.en, article } = Astro.props;
+const { title, description = config.tagline.en, article, prev, next } = Astro.props;
 
 const canonical = new URL(Astro.url.pathname, Astro.site).href;
 const ogImage = new URL("/og.png", Astro.site).href;
@@ -98,10 +101,13 @@ const jsonLd = article
 
     <link rel="alternate" type="application/rss+xml" title="TIL — Daniel Metzner" href="/rss.xml" />
     <link rel="sitemap" href="/sitemap-index.xml" />
+    {prev && <link rel="prev" href={new URL(prev, Astro.site).href} />}
+    {next && <link rel="next" href={new URL(next, Astro.site).href} />}
 
     <script type="application/ld+json" set:html={JSON.stringify(jsonLd)} is:inline />
   </head>
   <body>
+    <a class="skip-link" href="#main">Skip to content</a>
     <div class="wrap">
       <header class="site-head">
         <a class="site-title" href="/"><span class="accent">til</span> · daniel metzner</a>
@@ -110,7 +116,7 @@ const jsonLd = article
           <ThemeToggle />
         </div>
       </header>
-      <main>
+      <main id="main">
         <slot />
       </main>
       <Footer />

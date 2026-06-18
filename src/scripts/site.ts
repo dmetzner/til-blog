@@ -104,13 +104,19 @@ shareBtn?.addEventListener("click", async () => {
 const overlay = document.querySelector<HTMLElement>("[data-legal-overlay]");
 const panels = document.querySelectorAll<HTMLElement>("[data-legal]");
 
+let lastFocused: HTMLElement | null = null;
+
 function openLegal(kind: string) {
   if (!overlay) return;
   for (const p of panels) p.hidden = p.dataset.legal !== kind;
   overlay.hidden = false;
+  lastFocused = document.activeElement as HTMLElement;
+  overlay.querySelector<HTMLElement>("[data-close-legal]")?.focus();
 }
 function closeLegal() {
-  if (overlay) overlay.hidden = true;
+  if (!overlay || overlay.hidden) return;
+  overlay.hidden = true;
+  lastFocused?.focus(); // return focus to the trigger
 }
 
 for (const btn of document.querySelectorAll<HTMLElement>("[data-open-legal]")) {

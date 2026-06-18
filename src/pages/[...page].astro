@@ -18,7 +18,7 @@ const first = page.currentPage === 1;
 const title = first ? "til · daniel metzner" : `Page ${page.currentPage} · til`;
 ---
 
-<Base title={title}>
+<Base title={title} prev={page.url.prev} next={page.url.next}>
   <h1 class="lead">Today I Learned</h1>
 
   {
