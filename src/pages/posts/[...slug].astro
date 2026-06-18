@@ -1,0 +1,85 @@
+---
+import { getCollection, render } from "astro:content";
+import Base from "../../layouts/Base.astro";
+import { byDateDesc, fmtDate, readingMinutes, tagSlug } from "../../lib/posts";
+
+export async function getStaticPaths() {
+  const posts = (await getCollection("posts", ({ data }) => !data.draft)).sort(byDateDesc);
+  // Pass each post its date-sorted neighbours so the page can render prev/next
+  // without re-reading the whole collection. Newer = previous in the list.
+  return posts.map((post, i) => ({
+    params: { slug: post.id },
+    props: { post, newer: posts[i - 1] ?? null, older: posts[i + 1] ?? null },
+  }));
+}
+
+const { post, newer, older } = Astro.props;
+const { Content } = await render(post);
+const minutes = readingMinutes(post.body ?? "");
+const iso = post.data.pubDate.toISOString();
+---
+
+<Base
+  title={`${post.data.title} · til`}
+  description={post.data.description}
+  article={{ published: post.data.pubDate, tags: post.data.tags }}
+>
+  <article>
+    <header class="article-head">
+      <p class="post-meta">
+        <time class="post-date" datetime={iso}>{fmtDate(post.data.pubDate)}</time>
+        <span class="dot" aria-hidden="true">·</span>
+        <span class="read-time">~{minutes} min read</span>
+      </p>
+      <h1 class="article-title">{post.data.title}</h1>
+    </header>
+    <div class="prose">
+      <Content />
+    </div>
+    <div class="post-actions">
+      {
+        post.data.tags.length > 0 && (
+          <div class="tags">
+            {post.data.tags.map((t) => (
+              <a class="tag tag-link" href={`/tags/${tagSlug(t)}/`}>
+                {t}
+              </a>
+            ))}
+          </div>
+        )
+      }
+      <button type="button" class="share-btn mono" data-share aria-label="Share this note">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M4 12v7a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-7" />
+          <path d="M12 15V3M8 7l4-4 4 4" />
+        </svg>
+        <span data-share-label>Share</span>
+      </button>
+    </div>
+
+    {
+      (newer || older) && (
+        <nav class="post-nav" aria-label="More notes">
+          {older ? (
+            <a class="post-nav-link prev" href={`/posts/${older.id}/`}>
+              <span class="post-nav-dir">← older</span>
+              <span class="post-nav-title">{older.data.title}</span>
+            </a>
+          ) : (
+            <span />
+          )}
+          {newer ? (
+            <a class="post-nav-link next" href={`/posts/${newer.id}/`}>
+              <span class="post-nav-dir">newer →</span>
+              <span class="post-nav-title">{newer.data.title}</span>
+            </a>
+          ) : (
+            <span />
+          )}
+        </nav>
+      )
+    }
+
+    <a class="back" href="/">← all notes</a>
+  </article>
+</Base>

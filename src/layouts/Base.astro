@@ -1,0 +1,140 @@
+---
+import Footer from "../components/Footer.astro";
+import LangToggle from "../components/LangToggle.astro";
+import ThemeToggle from "../components/ThemeToggle.astro";
+import { config } from "../config";
+import "../styles/global.css";
+
+interface Props {
+  title: string;
+  description?: string;
+  /** Set on single posts → emits BlogPosting structured data + og:type=article. */
+  article?: { published: Date; tags: string[] };
+}
+const { title, description = config.tagline.en, article } = Astro.props;
+
+const canonical = new URL(Astro.url.pathname, Astro.site).href;
+const ogImage = new URL("/og.png", Astro.site).href;
+const ogType = article ? "article" : "website";
+
+// JSON-LD: a BlogPosting for posts, the Blog itself for everything else.
+const jsonLd = article
+  ? {
+      "@context": "https://schema.org",
+      "@type": "BlogPosting",
+      headline: title,
+      description,
+      datePublished: article.published.toISOString(),
+      keywords: article.tags.join(", "),
+      url: canonical,
+      image: ogImage,
+      author: { "@type": "Person", name: config.name, url: config.portfolio },
+    }
+  : {
+      "@context": "https://schema.org",
+      "@type": "Blog",
+      name: "TIL — Daniel Metzner",
+      description,
+      url: new URL("/", Astro.site).href,
+      author: { "@type": "Person", name: config.name, url: config.portfolio },
+    };
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#070708" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+
+    {/* apply saved theme + language before paint to avoid a flash (mirrors the portfolio) */}
+    <script is:inline>
+      try {
+        const r = document.documentElement;
+        const pref = localStorage.getItem("theme"); // "light" | "dark" | absent (= system)
+        r.dataset.themePref = pref === "light" || pref === "dark" ? pref : "system";
+        r.dataset.theme =
+          pref === "light" || pref === "dark"
+            ? pref
+            : matchMedia("(prefers-color-scheme: light)").matches
+              ? "light"
+              : "dark";
+        const saved = localStorage.getItem("lang");
+        const lang =
+          saved === "en" || saved === "de"
+            ? saved
+            : navigator.language.toLowerCase().startsWith("de")
+              ? "de"
+              : "en";
+        r.dataset.lang = lang;
+        r.lang = lang;
+      } catch {}
+    </script>
+
+    {/* self-hosted fonts — no third-party requests (no visitor-IP leak to Google) */}
+    <link rel="preload" href="/fonts/syne-800-latin.woff2" as="font" type="font/woff2" crossorigin />
+    <link
+      rel="preload"
+      href="/fonts/hanken-grotesk-400-latin.woff2"
+      as="font"
+      type="font/woff2"
+      crossorigin
+    />
+
+    <title>{title}</title>
+    <meta name="description" content={description} />
+    <link rel="canonical" href={canonical} />
+
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    <meta property="og:type" content={ogType} />
+    <meta property="og:url" content={canonical} />
+    <meta property="og:image" content={ogImage} />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:image" content={ogImage} />
+
+    <link rel="alternate" type="application/rss+xml" title="TIL — Daniel Metzner" href="/rss.xml" />
+    <link rel="sitemap" href="/sitemap-index.xml" />
+
+    <script type="application/ld+json" set:html={JSON.stringify(jsonLd)} is:inline />
+  </head>
+  <body>
+    <div class="wrap">
+      <header class="site-head">
+        <a class="site-title" href="/"><span class="accent">til</span> · daniel metzner</a>
+        <div class="controls">
+          <LangToggle />
+          <ThemeToggle />
+        </div>
+      </header>
+      <main>
+        <slot />
+      </main>
+      <Footer />
+    </div>
+
+    <script>
+      import "../scripts/site.ts";
+    </script>
+
+    {/* cookieless analytics — only emitted when a GoatCounter code is configured.
+        Prefix recorded paths with the host so they don't collide with the
+        portfolio's in the shared "metzner" dashboard. */}
+    {
+      config.goatcounter && (
+        <Fragment>
+          <script is:inline set:html={"window.goatcounter={path:function(p){return location.host+p}}"} />
+          <script
+            is:inline
+            data-goatcounter={`https://${config.goatcounter}.goatcounter.com/count`}
+            async
+            src="//gc.zgo.at/count.js"
+          />
+        </Fragment>
+      )
+    }
+  </body>
+</html>

@@ -1,0 +1,8 @@
+import sitemap from "@astrojs/sitemap";
+import { defineConfig } from "astro/config";
+
+// Custom domain → base stays "/". The portfolio fetches /posts.json from here.
+export default defineConfig({
+  site: "https://til.metzner.uk",
+  integrations: [sitemap()],
+});

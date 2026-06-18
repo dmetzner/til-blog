@@ -1,0 +1,83 @@
+---
+import type { GetStaticPaths } from "astro";
+import { getCollection } from "astro:content";
+import { config } from "../config";
+import Base from "../layouts/Base.astro";
+import { byDateDesc, fmtDate, readingMinutes, tagCounts, tagSlug } from "../lib/posts";
+
+// Paginated home. Rest param → page 1 lives at "/", the rest at "/2", "/3"…
+// With few posts there's just one page; pagination kicks in past pageSize.
+export const getStaticPaths = (async ({ paginate }) => {
+  const posts = (await getCollection("posts", ({ data }) => !data.draft)).sort(byDateDesc);
+  return paginate(posts, { pageSize: 12, props: { tags: tagCounts(posts) } });
+}) satisfies GetStaticPaths;
+
+const { page, tags } = Astro.props;
+const first = page.currentPage === 1;
+const title = first ? "til · daniel metzner" : `Page ${page.currentPage} · til`;
+---
+
+<Base title={title}>
+  <h1 class="lead">Today I Learned</h1>
+
+  {
+    first && (
+      <p class="lead-sub" data-i18n>
+        <span data-lang-en>{config.tagline.en}</span>
+        <span data-lang-de>{config.tagline.de}</span>
+      </p>
+    )
+  }
+
+  {
+    first && tags.length > 0 && (
+      <nav class="tag-cloud" aria-label="Browse by tag">
+        {tags.map(({ tag, count }) => (
+          <a class="tag tag-link" href={`/tags/${tagSlug(tag)}/`}>
+            {tag} <span class="tag-count">{count}</span>
+          </a>
+        ))}
+      </nav>
+    )
+  }
+
+  <ul class="post-list">
+    {
+      page.data.map((post) => (
+        <li class="post-item">
+          <a href={`/posts/${post.id}/`}>
+            <span class="post-meta-row">
+              <time class="post-date" datetime={post.data.pubDate.toISOString()}>
+                {fmtDate(post.data.pubDate)}
+              </time>
+              <span class="dot" aria-hidden="true">·</span>
+              <span class="post-date">~{readingMinutes(post.body ?? "")} min</span>
+            </span>
+            <h2 class="post-title">{post.data.title}</h2>
+            <p class="post-desc">{post.data.description}</p>
+          </a>
+        </li>
+      ))
+    }
+  </ul>
+
+  {
+    page.lastPage > 1 && (
+      <nav class="pagination mono" aria-label="Pages">
+        {page.url.prev ? (
+          <a href={page.url.prev}>← newer</a>
+        ) : (
+          <span class="disabled">← newer</span>
+        )}
+        <span class="page-count">
+          {page.currentPage} / {page.lastPage}
+        </span>
+        {page.url.next ? (
+          <a href={page.url.next}>older →</a>
+        ) : (
+          <span class="disabled">older →</span>
+        )}
+      </nav>
+    )
+  }
+</Base>

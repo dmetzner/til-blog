@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <defs>
+    <linearGradient id="g" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#2ee6e6"/>
+      <stop offset="1" stop-color="#b06bff"/>
+    </linearGradient>
+  </defs>
+  <rect width="64" height="64" rx="14" fill="#070708"/>
+  <rect x="1.5" y="1.5" width="61" height="61" rx="12.5" fill="none" stroke="url(#g)" stroke-opacity="0.5" stroke-width="1.5"/>
+  <text x="50%" y="51%" text-anchor="middle" dominant-baseline="central"
+        font-family="Verdana, Geneva, sans-serif" font-weight="700" font-size="29"
+        letter-spacing="-1" fill="url(#g)">DM</text>
+</svg>
