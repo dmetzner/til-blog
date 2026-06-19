@@ -6,7 +6,7 @@ obvious from any one file. Skim before changing `src/`.
 
 ## Stack
 
-- **Astro 5** content collections (glob loader), static output. **npm** (not pnpm).
+- **Astro 6** content collections (glob loader), static output. **Node ≥ 22.12**. **npm** (not pnpm).
 - Biome 2.x (lint+format on `.ts`/`.js`/`.json` — **not** `.astro`), Vitest, `astro check`.
 - No CSS framework — one hand-rolled `src/styles/global.css`. Google Fonts via `<link>`.
 - Deploys to **GitHub Pages on every push to `main`** (`.github/workflows/deploy.yml`),
