@@ -228,6 +228,9 @@ a {
 }
 .prose {
   font-size: 1.05rem;
+  /* long URLs / unbreakable tokens (e.g. typescript-eslint) wrap instead of
+     forcing the page wider than the viewport */
+  overflow-wrap: break-word;
 }
 .prose > * + * {
   margin-top: 1.1em;
@@ -293,6 +296,27 @@ a {
   background: none;
   border: none;
   padding: 0;
+}
+/* tables scroll inside their own box so a wide row never widens the page */
+.prose table {
+  display: block;
+  max-width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  border-collapse: collapse;
+  font-size: 0.92rem;
+}
+.prose th,
+.prose td {
+  border: 1px solid var(--panel-border);
+  padding: 7px 11px;
+  text-align: left;
+  vertical-align: top;
+  overflow-wrap: break-word;
+}
+.prose th {
+  background: var(--panel);
+  font-weight: 600;
 }
 .prose ul,
 .prose ol {
