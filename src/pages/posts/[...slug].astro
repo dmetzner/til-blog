@@ -1,6 +1,7 @@
 ---
 import { getCollection, render } from "astro:content";
 import Base from "../../layouts/Base.astro";
+import LikeButton from "../../components/LikeButton.astro";
 import { byDateDesc, fmtDate, readingMinutes, tagSlug } from "../../lib/posts";
 
 export async function getStaticPaths() {
@@ -48,13 +49,16 @@ const iso = post.data.pubDate.toISOString();
           </div>
         )
       }
-      <button type="button" class="share-btn mono" data-share aria-label="Share this note">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-          <path d="M4 12v7a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-7" />
-          <path d="M12 15V3M8 7l4-4 4 4" />
-        </svg>
-        <span data-share-label>Share</span>
-      </button>
+      <div class="post-buttons">
+        <LikeButton slug={post.id} />
+        <button type="button" class="share-btn mono" data-share aria-label="Share this note">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M4 12v7a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-7" />
+            <path d="M12 15V3M8 7l4-4 4 4" />
+          </svg>
+          <span data-share-label>Share</span>
+        </button>
+      </div>
     </div>
 
     {
