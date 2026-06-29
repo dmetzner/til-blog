@@ -5,27 +5,50 @@ import LikeButton from "../../components/LikeButton.astro";
 import { byDateDesc, fmtDate, readingMinutes, tagSlug } from "../../lib/posts";
 
 export async function getStaticPaths() {
-  const posts = (await getCollection("posts", ({ data }) => !data.draft)).sort(byDateDesc);
-  // Pass each post its date-sorted neighbours so the page can render prev/next
-  // without re-reading the whole collection. Newer = previous in the list.
-  return posts.map((post, i) => ({
-    params: { slug: post.id },
-    props: { post, newer: posts[i - 1] ?? null, older: posts[i + 1] ?? null },
-  }));
+  // Build a page for EVERY post, drafts included — drafts are reachable only via
+  // ?preview (gated below) and kept out of indexes/feeds/sitemap. Prev/next nav
+  // is computed from published posts only, so a draft never appears in it and a
+  // published post never links to one. Newer = previous in the date-sorted list.
+  const all = (await getCollection("posts")).sort(byDateDesc);
+  const published = all.filter((p) => !p.data.draft);
+  return all.map((post) => {
+    const i = published.findIndex((p) => p.id === post.id);
+    return {
+      params: { slug: post.id },
+      props: {
+        post,
+        newer: i === -1 ? null : (published[i - 1] ?? null),
+        older: i === -1 ? null : (published[i + 1] ?? null),
+      },
+    };
+  });
 }
 
 const { post, newer, older } = Astro.props;
 const { Content } = await render(post);
 const minutes = readingMinutes(post.body ?? "");
 const iso = post.data.pubDate.toISOString();
+const isDraft = post.data.draft;
 ---
 
 <Base
   title={`${post.data.title} · til`}
   description={post.data.description}
   article={{ published: post.data.pubDate, tags: post.data.tags }}
+  noindex={isDraft}
 >
-  <article>
+  {
+    isDraft && (
+      <div class="draft-gate" data-draft-gate>
+        <h1 class="article-title">Not found</h1>
+        <p>
+          This note isn’t published yet. <a href="/">← all notes</a>
+        </p>
+      </div>
+    )
+  }
+  <article class:list={[{ "is-draft-hidden": isDraft }]}>
+    {isDraft && <p class="draft-banner mono">● draft preview — not published</p>}
     <header class="article-head">
       <p class="post-meta">
         <time class="post-date" datetime={iso}>{fmtDate(post.data.pubDate)}</time>

@@ -402,6 +402,29 @@ a {
 .like-count:empty {
   display: none;
 }
+/* Draft posts are built but hidden; ?preview sets [data-preview] on <html> and reveals them. */
+.is-draft-hidden {
+  display: none;
+}
+[data-preview] .is-draft-hidden {
+  display: revert;
+}
+[data-preview] .draft-gate {
+  display: none;
+}
+.draft-gate {
+  padding: 40px 0 80px;
+}
+.draft-banner {
+  display: inline-block;
+  margin: 0 0 22px;
+  padding: 5px 12px;
+  border: 1px dashed color-mix(in srgb, var(--cyan) 55%, var(--panel-border));
+  border-radius: 999px;
+  color: var(--cyan);
+  font-size: 0.72rem;
+  letter-spacing: 0.03em;
+}
 .tags {
   display: flex;
   gap: 8px;
