@@ -62,3 +62,10 @@ src/
   `({ data }) => !data.draft`. A draft is invisible in prod but still hot-reloads in `dev`.
 - **CI runs the full `check` gate before deploy** — a red typecheck/lint/test blocks the
   Pages deploy. Don't downgrade the workflow to `withastro/action` (it skips the gate).
+- **Per-post likes (`LikeButton.astro`) are privacy-gated.** The count is fetched only when the
+  button scrolls into view (IntersectionObserver) — never on page load, so a bounce never pings
+  Supabase with the visitor's IP. A like is a deliberate click, deduped in `localStorage` (no
+  cookie). Writes go ONLY through the `bump_like` SECURITY DEFINER function (`supabase/likes.sql`,
+  run once in the dashboard) which clamps the delta to ±1 — the publishable key can't set
+  arbitrary counts. Talks to Supabase over plain PostgREST (no SDK bundled). `config.likes` empty
+  = feature off (button not rendered). Same EU Supabase project as the portfolio's live room.

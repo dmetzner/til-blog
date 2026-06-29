@@ -24,6 +24,18 @@ export const config = {
   // localhost, so no dev hits — that's expected. Empty string = analytics off.
   goatcounter: "metzner",
 
+  // Per-post "likes" — a single integer counter stored in Supabase (same EU
+  // project as the portfolio's live room). Both empty = feature OFF (the heart
+  // button isn't rendered). The publishable key is browser-safe; writes only go
+  // through a SECURITY DEFINER `bump_like` function (see supabase/likes.sql), so
+  // the key can't be used to set arbitrary counts. The like count is fetched
+  // lazily (only when the widget scrolls into view) so a bounce never pings
+  // Supabase, and a like is dedup'd client-side via localStorage (no cookie).
+  likes: {
+    supabaseUrl: "https://ivvjxeirjofilyrhnkuu.supabase.co",
+    supabaseKey: "sb_publishable_GvyuwPa9pPDx1yjSzwU4IA_Ny-V_jBc",
+  },
+
   // The EN/DE toggle only swaps the tagline (+ the always-German legal pages).
   // Everything else stays English on purpose — posts are single-language.
   tagline: {

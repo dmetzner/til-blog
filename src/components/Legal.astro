@@ -72,6 +72,23 @@ import { config } from "../config";
           gespeichert. Es werden keine Cookies gesetzt.{!config.goatcounter && " Es werden keine Analyse- oder Tracking-Dienste eingesetzt."}
         </p>
 
+        {
+          config.likes.supabaseUrl && config.likes.supabaseKey && (
+            <>
+              <h3>„Gefällt mir"-Funktion</h3>
+              <p>
+                Jeder Beitrag hat eine „Gefällt mir"-Schaltfläche mit Zähler. Der Zählerstand wird
+                erst geladen, wenn die Schaltfläche in den sichtbaren Bereich scrollt; dabei wird
+                eine Verbindung zu Supabase (EU-Region) aufgebaut und deine IP-Adresse an Supabase
+                übertragen. Gespeichert wird ausschließlich ein anonymer Gesamtzähler pro Beitrag —
+                keine Cookies, keine personenbezogenen Profile. Dass du selbst geliked hast, merkt
+                sich nur dein Browser lokal (localStorage). Rechtsgrundlage: berechtigtes Interesse
+                an einer datensparsamen Resonanzanzeige (Art. 6 Abs. 1 lit. f DSGVO).
+              </p>
+            </>
+          )
+        }
+
         <h3>Deine Rechte &amp; Kontakt</h3>
         <p>
           Auskunft, Berichtigung und Löschung: <a data-email-link href="#">E-Mail anzeigen</a>.
@@ -106,6 +123,22 @@ import { config } from "../config";
           Your theme and language preferences are stored only locally in your browser
           (localStorage). No cookies are set.{!config.goatcounter && " No analytics or tracking services are used."}
         </p>
+
+        {
+          config.likes.supabaseUrl && config.likes.supabaseKey && (
+            <>
+              <h3>“Like” feature</h3>
+              <p>
+                Each note has a “like” button with a counter. The current count is fetched only
+                when the button scrolls into view; this opens a connection to Supabase (EU region)
+                and transmits your IP address to Supabase. Only an anonymous total counter per note
+                is stored — no cookies, no personal profiles. The fact that you liked a note is
+                remembered only locally by your browser (localStorage). Legal basis: legitimate
+                interest in a privacy-friendly reaction count (Art. 6(1)(f) GDPR).
+              </p>
+            </>
+          )
+        }
 
         <h3>Your rights &amp; contact</h3>
         <p>
