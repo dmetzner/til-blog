@@ -13,8 +13,10 @@ interface Props {
   /** Paginated pages pass adjacent URLs → rel=prev/next for crawlers. */
   prev?: string | undefined;
   next?: string | undefined;
+  /** Draft posts: keep them out of search indexes even when reached via ?preview. */
+  noindex?: boolean;
 }
-const { title, description = config.tagline.en, article, prev, next } = Astro.props;
+const { title, description = config.tagline.en, article, prev, next, noindex = false } = Astro.props;
 
 const canonical = new URL(Astro.url.pathname, Astro.site).href;
 const ogImage = new URL("/og.png", Astro.site).href;
@@ -80,6 +82,14 @@ const jsonLd = article
       } catch {}
     </script>
 
+    {/* draft posts are built but hidden; ?preview reveals them (set pre-paint to avoid a flash) */}
+    <script is:inline>
+      try {
+        if (new URLSearchParams(location.search).has("preview"))
+          document.documentElement.dataset.preview = "";
+      } catch {}
+    </script>
+
     {/* self-hosted fonts — no third-party requests (no visitor-IP leak to Google) */}
     <link rel="preload" href="/fonts/syne-800-latin.woff2" as="font" type="font/woff2" crossorigin />
     <link
@@ -92,6 +102,7 @@ const jsonLd = article
 
     <title>{title}</title>
     <meta name="description" content={description} />
+    {noindex && <meta name="robots" content="noindex, nofollow" />}
     <link rel="canonical" href={canonical} />
 
     <meta property="og:title" content={title} />
