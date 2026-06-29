@@ -4,6 +4,9 @@ on:
   push:
     branches: [main]
   workflow_dispatch:
+  # monthly rebuild so security.txt's rolling Expires never lapses without a commit
+  schedule:
+    - cron: "0 6 1 * *"
 
 permissions:
   contents: read
