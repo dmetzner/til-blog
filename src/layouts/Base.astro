@@ -109,7 +109,7 @@ const jsonLd = article
     <meta property="og:description" content={description} />
     <meta property="og:type" content={ogType} />
     <meta property="og:url" content={canonical} />
-    <meta property="og:locale" content="en" />
+    <meta property="og:locale" content="en_US" />
     <meta property="og:site_name" content="TIL — Daniel Metzner" />
     <meta property="og:image" content={ogImage} />
     <meta property="og:image:width" content="1200" />
@@ -155,7 +155,7 @@ const jsonLd = article
             is:inline
             data-goatcounter={`https://${config.goatcounter}.goatcounter.com/count`}
             async
-            src="//gc.zgo.at/count.js"
+            src="/count.js"
           />
         </Fragment>
       )

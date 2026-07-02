@@ -147,5 +147,27 @@ overlay?.addEventListener("click", (e) => {
   if (e.target === overlay) closeLegal();
 });
 addEventListener("keydown", (e) => {
-  if (e.key === "Escape" && overlay && !overlay.hidden) closeLegal();
+  if (!overlay || overlay.hidden) return;
+  if (e.key === "Escape") {
+    closeLegal();
+    return;
+  }
+  // Trap Tab within the open dialog so focus can't walk to the page behind it.
+  if (e.key === "Tab") {
+    const focusable = overlay.querySelectorAll<HTMLElement>(
+      'a[href], button:not([disabled]), [tabindex]:not([tabindex="-1"])',
+    );
+    const visible = [...focusable].filter((el) => el.offsetParent !== null);
+    if (visible.length === 0) return;
+    const first = visible[0];
+    const last = visible[visible.length - 1];
+    const active = document.activeElement as HTMLElement;
+    if (e.shiftKey && active === first) {
+      e.preventDefault();
+      last.focus();
+    } else if (!e.shiftKey && active === last) {
+      e.preventDefault();
+      first.focus();
+    }
+  }
 });

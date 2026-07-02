@@ -6,9 +6,9 @@ obvious from any one file. Skim before changing `src/`.
 
 ## Stack
 
-- **Astro 6** content collections (glob loader), static output. **Node ≥ 22.12**. **npm** (not pnpm).
+- **Astro 7** content collections (glob loader), static output. **Node ≥ 22.12**. **npm** (not pnpm). (Exact versions: see `package.json`.)
 - Biome 2.x (lint+format on `.ts`/`.js`/`.json` — **not** `.astro`), Vitest, `astro check`.
-- No CSS framework — one hand-rolled `src/styles/global.css`. Google Fonts via `<link>`.
+- No CSS framework — one hand-rolled `src/styles/global.css`. Fonts self-hosted in `public/fonts/` (`src/styles/fonts.css`) — no third-party font requests (no visitor-IP leak).
 - Deploys to **GitHub Pages on every push to `main`** (`.github/workflows/deploy.yml`),
   custom domain `til.metzner.uk` (`public/CNAME`).
 
@@ -30,7 +30,7 @@ src/
   lib/posts.ts              EDIT pure helpers HERE (sort, date fmt, tag slug/counts).
                             No astro:content imports → unit-tested in lib/posts.test.ts.
   pages/
-    index.astro             note list + tag cloud
+    [...page].astro         paginated note list + tag cloud (the home route)
     posts/[...slug].astro   single note + prev/next nav + tag links
     tags/[tag].astro        per-tag listing (route = tagSlug of the label)
     posts.json.js           CORS feed the PORTFOLIO fetches — see gotcha below
@@ -58,8 +58,12 @@ src/
   without updating the portfolio's `useTil.ts`/`config.ts` in lockstep.
 - **Biome does not parse `.astro`** — those files are excluded in `biome.json`. Typechecking
   and template correctness for `.astro` come from `astro check`, which is part of `npm run check`.
-- **`draft: true` posts are filtered everywhere** (index, slug, tags, both feeds) via
-  `({ data }) => !data.draft`. A draft is invisible in prod but still hot-reloads in `dev`.
+- **`draft: true` posts are UNLISTED, not private.** They're filtered out of the index, tag
+  pages, RSS, sitemap, and `posts.json` via `({ data }) => !data.draft` — but the post page
+  itself IS built and publicly served at its slug URL (hidden only by client-side CSS +
+  `noindex`). So a draft on `main` is effectively published-but-unlinked: anyone who guesses
+  the URL or reads view-source sees it. Don't commit anything genuinely secret as a draft;
+  keep it off `main` until publish. (Preview mechanism, commit `390bc61`.)
 - **CI runs the full `check` gate before deploy** — a red typecheck/lint/test blocks the
   Pages deploy. Don't downgrade the workflow to `withastro/action` (it skips the gate).
 - **Per-post likes (`LikeButton.astro`) are privacy-gated.** The count is fetched only when the

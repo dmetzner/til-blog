@@ -26,6 +26,11 @@ create policy "anon reads like counts"
 -- The only write path. dir is clamped to ±1, the count floored at 0, and the
 -- row upserted. Runs as the table owner (security definer), bypassing RLS for
 -- the write while anon still has no direct table-write grant.
+--
+-- post_slug is validated against the slug grammar BEFORE any insert so the
+-- public key can't create unbounded arbitrary-length rows (storage-exhaustion
+-- on the shared project). Real post slugs are lowercase alphanumerics, hyphens,
+-- and optional subdirectory slashes.
 create or replace function public.bump_like(post_slug text, dir integer)
 returns integer
 language plpgsql
@@ -36,6 +41,10 @@ declare
   step integer := case when dir < 0 then -1 else 1 end;
   new_count integer;
 begin
+  if post_slug !~ '^[a-z0-9]+(?:[-/][a-z0-9]+)*$' or length(post_slug) > 120 then
+    raise exception 'invalid slug';
+  end if;
+
   insert into public.til_likes as t (slug, likes)
     values (post_slug, greatest(0, step))
   on conflict (slug)
