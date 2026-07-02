@@ -21,7 +21,7 @@ npm run dev      # dev server at http://localhost:4321
 | `npm run check`  | `astro check` + Biome + Vitest — the pre-commit / CI gate |
 | `npm run format` | Apply Biome formatting + import sorting                   |
 
-Requires **Node ≥ 22.12** (Astro 6). Run `npm run check` before committing.
+Requires **Node ≥ 22.12** (Astro 7). Run `npm run check` before committing.
 
 ## Write a post
 
