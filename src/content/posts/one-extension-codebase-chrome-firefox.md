@@ -6,13 +6,23 @@ tags: ["web", "tooling", "til"]
 draft: false
 ---
 
-We needed a header-injection extension at work for feature-flag testing, and
-every existing one seemed to bundle ads or worse. So we built our own — a
-small, public MV3 devtool that injects request headers, with one convenience
-the others lack: it imports the known feature-flag headers of our systems
+We needed a header-injection extension at work for feature-flag testing. Every
+option in the stores wanted an account, hid the basics behind a paywall, or —
+like ModHeader, the one everyone reaches for — now runs ads and nudges you
+toward a subscription inside what is, functionally, a devtool. I'd assumed that
+friction bought something: that setting a request header was fiddly enough to be
+worth paying for. Then I looked at what it actually takes.
+
+Manifest V3 hands you the whole mechanism. [`declarativeNetRequest`](https://developer.mozilla.org/en-US/docs/Mozilla/Add-ons/WebExtensions/API/declarativeNetRequest)
+sets request headers as a single dynamic rule with a `modifyHeaders` action; a
+few dozen lines do the work and everything else is just UI. A weekend later we
+had [Overhead](https://overhead.metzner.uk) — a small, public, MIT-licensed MV3
+devtool that injects request headers, no account, no ads, with one convenience
+the paid ones lack: it imports the known feature-flag headers of our systems
 straight from an endpoint or a JSON file, so nobody has to guess header names.
-I budgeted real time for "the Firefox port". There wasn't one. The same folder
-loads unpacked in Chrome and as a temporary add-on in Firefox, unchanged.
+
+Then I budgeted real time for "the Firefox port". There wasn't one. The same
+folder loads unpacked in Chrome and as a temporary add-on in Firefox, unchanged.
 
 Three tricks carry it. Every API call goes through
 `globalThis.browser ?? globalThis.chrome`, which picks the promise-based
@@ -64,6 +74,7 @@ as a reason to ship Chrome-only.
 
 ## Follow-up resources
 
+- [Overhead](https://overhead.metzner.uk) — the extension this post is about ([source](https://github.com/dmetzner/overhead), MIT)
 - [Signing and distribution overview](https://extensionworkshop.com/documentation/publish/signing-and-distribution-overview/) — Firefox Extension Workshop
 - [Extensions and the add-on ID](https://extensionworkshop.com/documentation/develop/extensions-and-the-add-on-id/) — why MV3 needs an explicit ID
 - [`browser_specific_settings`](https://developer.mozilla.org/en-US/docs/Mozilla/Add-ons/WebExtensions/manifest.json/browser_specific_settings) — MDN
