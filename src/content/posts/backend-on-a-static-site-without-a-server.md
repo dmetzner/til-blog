@@ -1,9 +1,9 @@
 ---
 title: "You can add a backend to a static site without running one"
 description: "Live presence, shared reactions and per-post likes on two static GitHub Pages sites — using Supabase from the browser, for free, without leaking visitors to a third party on load."
-pubDate: 2026-06-29
+pubDate: 2026-07-26
 tags: ["web", "databases", "security", "til"]
-draft: true
+draft: false
 ---
 
 Both my sites are static. The portfolio is React on Vite, this blog is Astro,
