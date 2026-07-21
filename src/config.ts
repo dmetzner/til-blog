@@ -10,6 +10,7 @@ export const config = {
   githubUser: "dmetzner",
   linkedin: "https://www.linkedin.com/in/daniel-metzner/",
   portfolio: "https://daniel.metzner.uk",
+  buymeacoffee: "https://buymeacoffee.com/metzner",
 
   // Email kept split into local-part + host so the full address never appears
   // verbatim in the HTML/JS — it's assembled at runtime (see scripts/site.ts),
