@@ -6,6 +6,7 @@ import * as Sentry from "@sentry/browser";
 Sentry.init({
   dsn: "https://2de72a82f331452bbd2a304398d9db9e@app.glitchtip.com/26052",
   tracesSampleRate: 0,
+  sendDefaultPii: false, // no IP / user data attached — errors only (site is privacy-first)
   ignoreErrors: [
     "ResizeObserver loop",
     "Non-Error promise rejection captured",
@@ -18,6 +19,9 @@ Sentry.init({
   beforeSend(event) {
     const frames = event.exception?.values?.[0]?.stacktrace?.frames ?? [];
     if (frames.length && !frames.some((f) => f.in_app)) return null;
+    // anonymize: no user identity, no request headers/cookies leave the browser
+    delete event.user;
+    delete event.request;
     return event;
   },
 });
