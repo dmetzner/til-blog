@@ -1,3 +1,4 @@
+import "./sentry";
 import { config } from "../config";
 
 // ── Theme: system → light → dark, persisted, live-follows OS in system mode.
