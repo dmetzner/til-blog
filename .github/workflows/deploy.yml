@@ -3,6 +3,9 @@ name: Deploy to GitHub Pages
 on:
   push:
     branches: [main]
+  # build-test PRs (incl. dependabot) so a red build blocks merge, not just deploy
+  pull_request:
+    branches: [main]
   workflow_dispatch:
   # monthly rebuild so security.txt's rolling Expires never lapses without a commit
   schedule:
@@ -38,6 +41,8 @@ jobs:
 
   deploy:
     needs: build
+    # PRs only build-test; deploy runs on push/dispatch/schedule to main
+    if: github.event_name != 'pull_request'
     runs-on: ubuntu-latest
     environment:
       name: github-pages
