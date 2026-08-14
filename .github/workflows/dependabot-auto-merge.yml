@@ -57,13 +57,15 @@ jobs:
       # and GITHUB_TOKEN-triggered events do not create workflow runs — so `push` never fires
       # and main sits undeployed until something else lands. `workflow_dispatch` is one of the
       # two events GITHUB_TOKEN may fire, so wait for the merge and dispatch the deploy.
+      # `-R` is not optional: with no checkout in this job, `gh` infers the repository
+      # from git and dies with "not a git repository".
       - name: Deploy main once the merge lands
         if: steps.gate.outputs.mergeable == 'true'
         run: |
           for _ in $(seq 60); do
             state=$(gh pr view "$PR_URL" --json state --jq .state)
             case "$state" in
-              MERGED) gh workflow run deploy.yml --ref main; exit 0 ;;
+              MERGED) gh workflow run deploy.yml -R "$GITHUB_REPOSITORY" --ref main; exit 0 ;;
               CLOSED) echo "PR closed without merging — nothing to deploy"; exit 0 ;;
             esac
             sleep 15
