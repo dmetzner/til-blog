@@ -39,12 +39,19 @@ document.querySelector("[data-theme-toggle]")?.addEventListener("click", () => {
   applyPref(next);
 });
 
-// ── Language: EN/DE. Only the tagline + legal pages react (CSS via data-lang);
-// the rest of the UI stays English. First paint is set by the inline bootstrap.
+// ── Language: EN/DE. Static text switches in CSS via data-lang (two spans, one
+// hidden). Strings that only exist at runtime — the transient "copied" states —
+// have no markup to hide, so they go through t() instead.
+// First paint is set by the inline bootstrap.
 function applyLang(lang: "en" | "de") {
   localStorage.setItem("lang", lang);
   root.dataset.lang = lang; // document stays lang="en"; only fragments toggle
 }
+/** the current UI string, picked from a pair, for text that JS creates */
+function t(en: string, de: string): string {
+  return root.dataset.lang === "de" ? de : en;
+}
+
 for (const btn of document.querySelectorAll<HTMLElement>("[data-set-lang]")) {
   btn.addEventListener("click", () => applyLang(btn.dataset.setLang === "de" ? "de" : "en"));
 }
@@ -57,10 +64,10 @@ copyBtn?.addEventListener("click", () => {
   const label = copyBtn.querySelector("[data-email-label]");
   navigator.clipboard?.writeText(email).then(() => {
     if (!label) return;
-    const prev = label.textContent;
-    label.textContent = "copied ✓";
+    const prev = label.innerHTML;
+    label.textContent = t("copied ✓", "kopiert ✓");
     setTimeout(() => {
-      label.textContent = prev;
+      label.innerHTML = prev;
     }, 1800);
   });
 });
@@ -92,10 +99,10 @@ shareBtn?.addEventListener("click", async () => {
   try {
     await navigator.clipboard?.writeText(url);
     if (label) {
-      const prev = label.textContent;
-      label.textContent = "link copied ✓";
+      const prev = label.innerHTML;
+      label.textContent = t("link copied ✓", "Link kopiert ✓");
       setTimeout(() => {
-        label.textContent = prev;
+        label.innerHTML = prev;
       }, 1800);
     }
   } catch {
@@ -108,13 +115,13 @@ for (const pre of document.querySelectorAll<HTMLElement>(".prose pre")) {
   const btn = document.createElement("button");
   btn.type = "button";
   btn.className = "code-copy mono";
-  btn.textContent = "copy";
+  btn.textContent = t("copy", "kopieren");
   btn.addEventListener("click", () => {
     const code = pre.querySelector("code")?.textContent ?? pre.textContent ?? "";
     navigator.clipboard?.writeText(code).then(() => {
-      btn.textContent = "copied ✓";
+      btn.textContent = t("copied ✓", "kopiert ✓");
       setTimeout(() => {
-        btn.textContent = "copy";
+        btn.textContent = t("copy", "kopieren");
       }, 1500);
     });
   });

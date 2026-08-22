@@ -1,0 +1,12 @@
+---
+// One string in both languages. CSS (`html[data-lang]`) hides the one that is
+// not current, so both ship in the HTML — which is also why static text can be
+// bilingual without JavaScript at all.
+interface Props {
+  en: string;
+  de: string;
+}
+const { en, de } = Astro.props;
+---
+
+<span data-lang-en>{en}</span><span data-lang-de lang="de">{de}</span>
