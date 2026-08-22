@@ -1,4 +1,5 @@
 ---
+import Bi from "../components/Bi.astro";
 import BackLink from "../components/BackLink.astro";
 import Duck from "../components/Duck.astro";
 import Base from "../layouts/Base.astro";
@@ -9,12 +10,13 @@ import Base from "../layouts/Base.astro";
     <Duck class="notfound-duck" gid="duck-404" />
     <h1 class="lead">
       <span class="accent">404</span>
-      <span data-lang-en>— nothing here</span>
-      <span data-lang-de lang="de">— hier ist nichts</span>
+      <Bi en="— nothing here" de="— hier ist nichts" />
     </h1>
     <p class="lead-sub">
-      <span data-lang-en>That note doesn't exist (or wasn't published yet).</span>
-      <span data-lang-de lang="de">Diese Notiz gibt es nicht (oder sie ist noch nicht veröffentlicht).</span>
+      <Bi
+        en="That note doesn't exist (or wasn't published yet)."
+        de="Diese Notiz gibt es nicht (oder sie ist noch nicht veröffentlicht)."
+      />
     </p>
     <BackLink />
   </div>

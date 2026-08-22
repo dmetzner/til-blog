@@ -1,26 +1,16 @@
 ---
 // "back to the index" — five pages carried their own copy of this, in English
 // only. One place, both languages.
+import Bi from "./Bi.astro";
+
 interface Props {
   /** where back leads: the note index (default) or the tag index */
   to?: "notes" | "tags";
 }
 const { to = "notes" } = Astro.props;
-const href = to === "tags" ? "/tags/" : "/";
+const tags = to === "tags";
 ---
 
-<a class="back" href={href}>
-  {
-    to === "tags" ? (
-      <>
-        <span data-lang-en>← all tags</span>
-        <span data-lang-de lang="de">← alle Tags</span>
-      </>
-    ) : (
-      <>
-        <span data-lang-en>← all notes</span>
-        <span data-lang-de lang="de">← alle Notizen</span>
-      </>
-    )
-  }
+<a class="back" href={tags ? "/tags/" : "/"}>
+  <Bi en={tags ? "← all tags" : "← all notes"} de={tags ? "← alle Tags" : "← alle Notizen"} />
 </a>

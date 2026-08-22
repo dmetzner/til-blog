@@ -1,5 +1,6 @@
 ---
 import { getCollection } from "astro:content";
+import Bi from "../../components/Bi.astro";
 import BackLink from "../../components/BackLink.astro";
 import Base from "../../layouts/Base.astro";
 import { tagCounts, tagSlug } from "../../lib/posts";
@@ -13,8 +14,10 @@ const tags = tagCounts(posts);
 <Base title="tags · til">
   <h1 class="lead">Tags</h1>
   <p class="lead-sub">
-    <span data-lang-en>{tags.length} tags across {posts.length} notes.</span>
-    <span data-lang-de lang="de">{tags.length} Tags über {posts.length} Notizen.</span>
+    <Bi
+      en={`${tags.length} tags across ${posts.length} notes.`}
+      de={`${tags.length} Tags über ${posts.length} Notizen.`}
+    />
   </p>
 
   <nav class="tag-cloud" aria-label="Browse by tag">

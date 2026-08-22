@@ -2,6 +2,7 @@
 import type { GetStaticPaths } from "astro";
 import { getCollection } from "astro:content";
 import { config } from "../config";
+import Bi from "../components/Bi.astro";
 import PostCard from "../components/PostCard.astro";
 import Base from "../layouts/Base.astro";
 import { byDateDesc, readingMinutes, tagCounts } from "../lib/posts";
@@ -34,8 +35,7 @@ const title = first ? "til · daniel metzner" : `Page ${page.currentPage} · til
   {
     first && (
       <p class="lead-sub">
-        <span data-lang-en>{config.tagline.en}</span>
-        <span data-lang-de lang="de">{config.tagline.de}</span>
+        <Bi en={config.tagline.en} de={config.tagline.de} />
       </p>
     )
   }
@@ -44,18 +44,18 @@ const title = first ? "til · daniel metzner" : `Page ${page.currentPage} · til
     first && (
       <p class="stats mono">
         <span>
-          <span data-lang-en>{stats.notes} notes</span>
-          <span data-lang-de lang="de">{stats.notes} Notizen</span>
+          <Bi en={`${stats.notes} notes`} de={`${stats.notes} Notizen`} />
         </span>
         <span>
-          <span data-lang-en>~{stats.minutes} min to read all</span>
-          <span data-lang-de lang="de">~{stats.minutes} Min. Lesezeit</span>
+          <Bi en={`~${stats.minutes} min to read all`} de={`~${stats.minutes} Min. Lesezeit`} />
         </span>
         <a href="/tags/">{stats.tags} tags</a>
         {stats.since && (
           <span>
-            <span data-lang-en>since {monthYear(stats.since, "en-GB")}</span>
-            <span data-lang-de lang="de">seit {monthYear(stats.since, "de-AT")}</span>
+            <Bi
+              en={`since ${monthYear(stats.since, "en-GB")}`}
+              de={`seit ${monthYear(stats.since, "de-AT")}`}
+            />
           </span>
         )}
       </p>
@@ -71,13 +71,11 @@ const title = first ? "til · daniel metzner" : `Page ${page.currentPage} · til
       <nav class="pagination mono" aria-label="Pages">
         {page.url.prev ? (
           <a href={page.url.prev}>
-            <span data-lang-en>← newer</span>
-            <span data-lang-de lang="de">← neuer</span>
+            <Bi en="← newer" de="← neuer" />
           </a>
         ) : (
           <span class="disabled">
-            <span data-lang-en>← newer</span>
-            <span data-lang-de lang="de">← neuer</span>
+            <Bi en="← newer" de="← neuer" />
           </span>
         )}
         <span class="page-count">
@@ -85,13 +83,11 @@ const title = first ? "til · daniel metzner" : `Page ${page.currentPage} · til
         </span>
         {page.url.next ? (
           <a href={page.url.next}>
-            <span data-lang-en>older →</span>
-            <span data-lang-de lang="de">älter →</span>
+            <Bi en="older →" de="älter →" />
           </a>
         ) : (
           <span class="disabled">
-            <span data-lang-en>older →</span>
-            <span data-lang-de lang="de">älter →</span>
+            <Bi en="older →" de="älter →" />
           </span>
         )}
       </nav>

@@ -1,5 +1,6 @@
 ---
 import { getCollection, render } from "astro:content";
+import Bi from "../../components/Bi.astro";
 import Base from "../../layouts/Base.astro";
 import BackLink from "../../components/BackLink.astro";
 import LikeButton from "../../components/LikeButton.astro";
@@ -42,12 +43,10 @@ const isDraft = post.data.draft;
     isDraft && (
       <div class="draft-gate" data-draft-gate>
         <h1 class="article-title">
-          <span data-lang-en>Not found</span>
-          <span data-lang-de lang="de">Nicht gefunden</span>
+          <Bi en="Not found" de="Nicht gefunden" />
         </h1>
         <p>
-          <span data-lang-en>This note isn’t published yet.</span>
-          <span data-lang-de lang="de">Diese Notiz ist noch nicht veröffentlicht.</span>
+          <Bi en="This note isn’t published yet." de="Diese Notiz ist noch nicht veröffentlicht." />
           <BackLink />
         </p>
       </div>
@@ -86,8 +85,7 @@ const isDraft = post.data.draft;
             <path d="M12 15V3M8 7l4-4 4 4" />
           </svg>
           <span data-share-label>
-            <span data-lang-en>Share</span>
-            <span data-lang-de lang="de">Teilen</span>
+            <Bi en="Share" de="Teilen" />
           </span>
         </button>
       </div>
@@ -99,8 +97,7 @@ const isDraft = post.data.draft;
           {older ? (
             <a class="post-nav-link prev" href={`/posts/${older.id}/`}>
               <span class="post-nav-dir">
-                <span data-lang-en>← older</span>
-                <span data-lang-de lang="de">← älter</span>
+                <Bi en="← older" de="← älter" />
               </span>
               <span class="post-nav-title">{older.data.title}</span>
             </a>
@@ -110,8 +107,7 @@ const isDraft = post.data.draft;
           {newer ? (
             <a class="post-nav-link next" href={`/posts/${newer.id}/`}>
               <span class="post-nav-dir">
-                <span data-lang-en>newer →</span>
-                <span data-lang-de lang="de">neuer →</span>
+                <Bi en="newer →" de="neuer →" />
               </span>
               <span class="post-nav-title">{newer.data.title}</span>
             </a>
