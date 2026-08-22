@@ -1,0 +1,30 @@
+---
+import { getCollection } from "astro:content";
+import Base from "../../layouts/Base.astro";
+import { tagCounts, tagSlug } from "../../lib/posts";
+
+// The full tag cloud. It used to sit on the index, where 24 tags cost four
+// rows above the first note; the index now links here instead.
+const posts = await getCollection("posts", ({ data }) => !data.draft);
+const tags = tagCounts(posts);
+---
+
+<Base title="tags · til">
+  <h1 class="lead">Tags</h1>
+  <p class="lead-sub">
+    <span data-lang-en>{tags.length} tags across {posts.length} notes.</span>
+    <span data-lang-de lang="de">{tags.length} Tags über {posts.length} Notizen.</span>
+  </p>
+
+  <nav class="tag-cloud" aria-label="Browse by tag">
+    {
+      tags.map(({ tag, count }) => (
+        <a class="tag tag-link" href={`/tags/${tagSlug(tag)}/`}>
+          {tag} <span class="tag-count">{count}</span>
+        </a>
+      ))
+    }
+  </nav>
+
+  <a class="back" href="/">← all notes</a>
+</Base>

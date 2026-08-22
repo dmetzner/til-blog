@@ -4,16 +4,26 @@ import { getCollection } from "astro:content";
 import { config } from "../config";
 import PostCard from "../components/PostCard.astro";
 import Base from "../layouts/Base.astro";
-import { byDateDesc, tagCounts, tagSlug } from "../lib/posts";
+import { byDateDesc, readingMinutes, tagCounts } from "../lib/posts";
 
 // Paginated home. Rest param → page 1 lives at "/", the rest at "/2", "/3"…
 // With few posts there's just one page; pagination kicks in past pageSize.
 export const getStaticPaths = (async ({ paginate }) => {
   const posts = (await getCollection("posts", ({ data }) => !data.draft)).sort(byDateDesc);
-  return paginate(posts, { pageSize: 12, props: { tags: tagCounts(posts) } });
+  // Site-wide numbers, computed at build from the posts themselves — no
+  // analytics call, nothing to keep in sync, and they cannot go stale.
+  const stats = {
+    notes: posts.length,
+    minutes: posts.reduce((sum, p) => sum + readingMinutes(p.body ?? ""), 0),
+    tags: tagCounts(posts).length,
+    since: posts[posts.length - 1]?.data.pubDate,
+  };
+  return paginate(posts, { pageSize: 12, props: { stats } });
 }) satisfies GetStaticPaths;
 
-const { page, tags } = Astro.props;
+const { page, stats } = Astro.props;
+const monthYear = (d: Date, locale: string) =>
+  d.toLocaleDateString(locale, { month: "long", year: "numeric" });
 const first = page.currentPage === 1;
 const title = first ? "til · daniel metzner" : `Page ${page.currentPage} · til`;
 ---
@@ -31,14 +41,24 @@ const title = first ? "til · daniel metzner" : `Page ${page.currentPage} · til
   }
 
   {
-    first && tags.length > 0 && (
-      <nav class="tag-cloud" aria-label="Browse by tag">
-        {tags.map(({ tag, count }) => (
-          <a class="tag tag-link" href={`/tags/${tagSlug(tag)}/`}>
-            {tag} <span class="tag-count">{count}</span>
-          </a>
-        ))}
-      </nav>
+    first && (
+      <p class="stats mono">
+        <span>
+          <span data-lang-en>{stats.notes} notes</span>
+          <span data-lang-de lang="de">{stats.notes} Notizen</span>
+        </span>
+        <span>
+          <span data-lang-en>~{stats.minutes} min to read all</span>
+          <span data-lang-de lang="de">~{stats.minutes} Min. Lesezeit</span>
+        </span>
+        <a href="/tags/">{stats.tags} tags</a>
+        {stats.since && (
+          <span>
+            <span data-lang-en>since {monthYear(stats.since, "en-GB")}</span>
+            <span data-lang-de lang="de">seit {monthYear(stats.since, "de-AT")}</span>
+          </span>
+        )}
+      </p>
     )
   }
 
