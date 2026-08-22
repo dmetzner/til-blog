@@ -1,5 +1,6 @@
 ---
 import { getCollection } from "astro:content";
+import Bi from "../../components/Bi.astro";
 import BackLink from "../../components/BackLink.astro";
 import PostCard from "../../components/PostCard.astro";
 import Base from "../../layouts/Base.astro";
@@ -19,17 +20,14 @@ const { label, posts } = Astro.props;
 
 <Base title={`#${label} · til`} description={`TIL notes tagged ${label}.`}>
   <h1 class="lead">
-    <span data-lang-en>Tagged</span>
-    <span data-lang-de lang="de">Getaggt mit</span>
+    <Bi en="Tagged" de="Getaggt mit" />
     <span class="accent">#{label}</span>
   </h1>
   <p class="lead-sub">
-    <span data-lang-en>
-      {posts.length} note{posts.length === 1 ? "" : "s"}.
-    </span>
-    <span data-lang-de lang="de">
-      {posts.length} Notiz{posts.length === 1 ? "" : "en"}.
-    </span>
+    <Bi
+      en={`${posts.length} note${posts.length === 1 ? "" : "s"}.`}
+      de={`${posts.length} Notiz${posts.length === 1 ? "" : "en"}.`}
+    />
   </p>
 
   <ul class="post-list">
