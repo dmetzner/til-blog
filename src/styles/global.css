@@ -526,7 +526,9 @@ a {
   color: var(--cyan);
 }
 
-/* ── language toggle (only the tagline + legal pages switch) ── */
+/* ── language toggle: every static UI string ships both languages and CSS
+   hides one. Runtime-only strings (the "copied" states) go through t() in
+   scripts/site.ts instead — there is no markup there to hide. ── */
 html[data-lang="en"] [data-lang-de],
 html[data-lang="de"] [data-lang-en] {
   display: none;

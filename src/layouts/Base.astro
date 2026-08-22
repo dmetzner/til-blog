@@ -125,10 +125,15 @@ const jsonLd = article
     <script type="application/ld+json" set:html={JSON.stringify(jsonLd)} is:inline />
   </head>
   <body>
-    <a class="skip-link" href="#main">Skip to content</a>
+    <a class="skip-link" href="#main">
+      <span data-lang-en>Skip to content</span>
+      <span data-lang-de lang="de">Zum Inhalt springen</span>
+    </a>
     <div class="wrap">
       <header class="site-head">
-        <a class="site-title" href="/"><span class="accent">til</span> · daniel metzner</a>
+        <span class="site-title">
+          <a href="/"><span class="accent">til</span></a> · <a href={config.portfolio}>daniel metzner</a>
+        </span>
         <div class="controls">
           <LangToggle />
           <ThemeToggle />
