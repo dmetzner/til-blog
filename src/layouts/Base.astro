@@ -1,4 +1,5 @@
 ---
+import Bi from "../components/Bi.astro";
 import Footer from "../components/Footer.astro";
 import LangToggle from "../components/LangToggle.astro";
 import ThemeToggle from "../components/ThemeToggle.astro";
@@ -125,10 +126,14 @@ const jsonLd = article
     <script type="application/ld+json" set:html={JSON.stringify(jsonLd)} is:inline />
   </head>
   <body>
-    <a class="skip-link" href="#main">Skip to content</a>
+    <a class="skip-link" href="#main">
+      <Bi en="Skip to content" de="Zum Inhalt springen" />
+    </a>
     <div class="wrap">
       <header class="site-head">
-        <a class="site-title" href="/"><span class="accent">til</span> · daniel metzner</a>
+        <span class="site-title">
+          <a href="/"><span class="accent">til</span></a> · <a href={config.portfolio}>daniel metzner</a>
+        </span>
         <div class="controls">
           <LangToggle />
           <ThemeToggle />

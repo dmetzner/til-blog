@@ -1,4 +1,6 @@
 ---
+import Bi from "../components/Bi.astro";
+import BackLink from "../components/BackLink.astro";
 import Duck from "../components/Duck.astro";
 import Base from "../layouts/Base.astro";
 ---
@@ -6,9 +8,17 @@ import Base from "../layouts/Base.astro";
 <Base title="404 · til" description="Page not found.">
   <div class="notfound">
     <Duck class="notfound-duck" gid="duck-404" />
-    <h1 class="lead"><span class="accent">404</span> — nothing here</h1>
-    <p class="lead-sub">That note doesn't exist (or wasn't published yet).</p>
-    <a class="back" href="/">← all notes</a>
+    <h1 class="lead">
+      <span class="accent">404</span>
+      <Bi en="— nothing here" de="— hier ist nichts" />
+    </h1>
+    <p class="lead-sub">
+      <Bi
+        en="That note doesn't exist (or wasn't published yet)."
+        de="Diese Notiz gibt es nicht (oder sie ist noch nicht veröffentlicht)."
+      />
+    </p>
+    <BackLink />
   </div>
 </Base>
 
