@@ -138,6 +138,10 @@ a {
   color: var(--text-dim);
   margin-bottom: 48px;
 }
+/* the stats line belongs to the subtitle, not to the notes below it */
+.lead-sub:has(+ .stats) {
+  margin-bottom: 14px;
+}
 .post-list {
   list-style: none;
   display: flex;
@@ -827,4 +831,29 @@ html[data-lang="de"] .lang-toggle [data-set-lang="de"] {
     animation: none !important;
     transition: none !important;
   }
+}
+
+/* the index's one-line site stats — replaced a 24-tag cloud that cost four
+   rows above the first note. The tags themselves live at /tags now. */
+.stats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 14px;
+  margin-bottom: 44px;
+  font-size: 0.78rem;
+  color: var(--text-faint);
+}
+.stats > * + *::before {
+  content: "·";
+  margin-right: 14px;
+  color: var(--panel-border);
+}
+.stats a {
+  color: var(--text-faint);
+  text-decoration: none;
+  border-bottom: 1px solid var(--panel-border);
+}
+.stats a:hover {
+  color: var(--cyan);
+  border-bottom-color: var(--cyan);
 }
