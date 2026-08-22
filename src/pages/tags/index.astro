@@ -1,5 +1,6 @@
 ---
 import { getCollection } from "astro:content";
+import BackLink from "../../components/BackLink.astro";
 import Base from "../../layouts/Base.astro";
 import { tagCounts, tagSlug } from "../../lib/posts";
 
@@ -26,5 +27,5 @@ const tags = tagCounts(posts);
     }
   </nav>
 
-  <a class="back" href="/">← all notes</a>
+  <BackLink />
 </Base>

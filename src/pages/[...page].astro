@@ -70,17 +70,29 @@ const title = first ? "til · daniel metzner" : `Page ${page.currentPage} · til
     page.lastPage > 1 && (
       <nav class="pagination mono" aria-label="Pages">
         {page.url.prev ? (
-          <a href={page.url.prev}>← newer</a>
+          <a href={page.url.prev}>
+            <span data-lang-en>← newer</span>
+            <span data-lang-de lang="de">← neuer</span>
+          </a>
         ) : (
-          <span class="disabled">← newer</span>
+          <span class="disabled">
+            <span data-lang-en>← newer</span>
+            <span data-lang-de lang="de">← neuer</span>
+          </span>
         )}
         <span class="page-count">
           {page.currentPage} / {page.lastPage}
         </span>
         {page.url.next ? (
-          <a href={page.url.next}>older →</a>
+          <a href={page.url.next}>
+            <span data-lang-en>older →</span>
+            <span data-lang-de lang="de">älter →</span>
+          </a>
         ) : (
-          <span class="disabled">older →</span>
+          <span class="disabled">
+            <span data-lang-en>older →</span>
+            <span data-lang-de lang="de">älter →</span>
+          </span>
         )}
       </nav>
     )

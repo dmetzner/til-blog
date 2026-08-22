@@ -1,6 +1,7 @@
 ---
 import { getCollection, render } from "astro:content";
 import Base from "../../layouts/Base.astro";
+import BackLink from "../../components/BackLink.astro";
 import LikeButton from "../../components/LikeButton.astro";
 import { byDateDesc, fmtDate, readingMinutes, tagSlug } from "../../lib/posts";
 
@@ -40,9 +41,14 @@ const isDraft = post.data.draft;
   {
     isDraft && (
       <div class="draft-gate" data-draft-gate>
-        <h1 class="article-title">Not found</h1>
+        <h1 class="article-title">
+          <span data-lang-en>Not found</span>
+          <span data-lang-de lang="de">Nicht gefunden</span>
+        </h1>
         <p>
-          This note isn’t published yet. <a href="/">← all notes</a>
+          <span data-lang-en>This note isn’t published yet.</span>
+          <span data-lang-de lang="de">Diese Notiz ist noch nicht veröffentlicht.</span>
+          <BackLink />
         </p>
       </div>
     )
@@ -79,7 +85,10 @@ const isDraft = post.data.draft;
             <path d="M4 12v7a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-7" />
             <path d="M12 15V3M8 7l4-4 4 4" />
           </svg>
-          <span data-share-label>Share</span>
+          <span data-share-label>
+            <span data-lang-en>Share</span>
+            <span data-lang-de lang="de">Teilen</span>
+          </span>
         </button>
       </div>
     </div>
@@ -89,7 +98,10 @@ const isDraft = post.data.draft;
         <nav class="post-nav" aria-label="More notes">
           {older ? (
             <a class="post-nav-link prev" href={`/posts/${older.id}/`}>
-              <span class="post-nav-dir">← older</span>
+              <span class="post-nav-dir">
+                <span data-lang-en>← older</span>
+                <span data-lang-de lang="de">← älter</span>
+              </span>
               <span class="post-nav-title">{older.data.title}</span>
             </a>
           ) : (
@@ -97,7 +109,10 @@ const isDraft = post.data.draft;
           )}
           {newer ? (
             <a class="post-nav-link next" href={`/posts/${newer.id}/`}>
-              <span class="post-nav-dir">newer →</span>
+              <span class="post-nav-dir">
+                <span data-lang-en>newer →</span>
+                <span data-lang-de lang="de">neuer →</span>
+              </span>
               <span class="post-nav-title">{newer.data.title}</span>
             </a>
           ) : (
@@ -107,6 +122,6 @@ const isDraft = post.data.draft;
       )
     }
 
-    <a class="back" href="/">← all notes</a>
+    <BackLink />
   </article>
 </Base>
