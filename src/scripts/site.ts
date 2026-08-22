@@ -56,8 +56,11 @@ for (const btn of document.querySelectorAll<HTMLElement>("[data-set-lang]")) {
   btn.addEventListener("click", () => applyLang(btn.dataset.setLang === "de" ? "de" : "en"));
 }
 
-// ── Email assembled at runtime (never verbatim in the HTML → bot-resistant).
+// ── Emails assembled at runtime (never verbatim in the HTML → bot-resistant).
+// Two of them, and they are not interchangeable: `email` is the human contact behind the copy
+// button, `legalEmail` is the alias the imprint and privacy policy reveal.
 const email = `${config.emailUser}@${config.emailHost}`;
+const legalEmail = `${config.legalUser}@${config.emailHost}`;
 
 const copyBtn = document.querySelector<HTMLButtonElement>("[data-copy-email]");
 copyBtn?.addEventListener("click", () => {
@@ -72,13 +75,14 @@ copyBtn?.addEventListener("click", () => {
   });
 });
 
-// Legal "email" links reveal the address (and a mailto) only on click.
+// Legal "email" links reveal the address (and a mailto) only on click. These are the imprint and
+// the privacy policy, so they reveal `legalEmail` — not the copy button's human address.
 for (const a of document.querySelectorAll<HTMLAnchorElement>("[data-email-link]")) {
   a.addEventListener("click", (e) => {
     if (a.dataset.revealed) return; // second click follows the real mailto
     e.preventDefault();
-    a.textContent = email;
-    a.href = `mailto:${email}`;
+    a.textContent = legalEmail;
+    a.href = `mailto:${legalEmail}`;
     a.dataset.revealed = "1";
   });
 }

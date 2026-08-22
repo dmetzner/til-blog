@@ -18,6 +18,12 @@ export const config = {
   emailUser: "contact",
   emailHost: "metzner.uk",
 
+  // The local-part the LEGAL pages reveal, deliberately not `emailUser`. That one is what a
+  // reader is invited to write to (the copy-email button); this is a dedicated alias for the
+  // imprint and privacy policy. § 5 ECG wants a contact that WORKS, so it should be an address
+  // that can be re-pointed or, once harvested, burned without taking the human one down too.
+  legalUser: "legal",
+
   // Cookieless analytics (no consent banner). Reuses the portfolio's GoatCounter
   // site ("metzner" → https://metzner.goatcounter.com). Because both sites share
   // one dashboard, blog hits are recorded with the host prefixed (see Base.astro)
