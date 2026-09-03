@@ -11,19 +11,18 @@ keyboard, a toy. I had a long train ride and tried it anyway, and the thing that
 flipped me wasn't the editing. It was switching to another app, coming back ten
 minutes later, and finding the work *already done*.
 
-That only makes sense once you realise where the work happens. [Claude Code on the
-web](https://code.claude.com/docs/en/claude-code-on-the-web) runs each session in a
-fresh Anthropic-managed VM — your repo cloned into ~4 vCPUs and 16 GB of RAM on
-Ubuntu, not on the handset. So when the docs say *"sessions persist even if you
-close your browser, and you can monitor them from the Claude mobile app,"* they mean
-it literally: my phone is a remote control, not the machine. Lock the screen, switch
-tabs, take a call — the build keeps running server-side. No babysitting a terminal.
+That only makes sense once you notice where the work actually happens: not on the
+phone. [Claude Code on the web](https://code.claude.com/docs/en/claude-code-on-the-web)
+runs each session on a computer somewhere else — a fresh one, with a copy of the
+project on it. The phone is a remote control, not the machine. So when the docs say
+*"sessions persist even if you close your browser, and you can monitor them from the
+Claude mobile app,"* they mean it literally. Which also removes the reason to sit and
+[watch a terminal](/posts/stop-watching-the-terminal/) at all.
 
 Two things came out of a few minutes of chatting on the train:
 [nice-wheel](https://niceshops-playground.github.io/nice-wheel/) and
 [plan-it-nice](https://niceshops-playground.github.io/plan-it-nice/). Describe the
-idea, wait a bit, open the GitHub Pages URL on the same phone, test, refine. The loop
-is identical to sitting at my PC — I'm just opening the browser somewhere else.
+idea, wait a bit, open the GitHub Pages URL on the same phone, test, refine.
 
 ## The one gotcha
 

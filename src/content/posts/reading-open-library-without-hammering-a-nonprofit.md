@@ -1,51 +1,54 @@
 ---
 title: "Reading Open Library without hammering a nonprofit"
-description: "Using Open Library for ISBN metadata and covers — where the data actually lives, which endpoint resolves German editions, and how to cache so a timeout never poisons the answer."
+description: "Book data from a charity's servers, for free — which means the interesting question isn't how to fetch it, but which answers you're allowed to remember."
 pubDate: 2026-07-23
 tags: ["web", "apis", "til"]
 draft: false
 ---
 
-[Verso](https://verso.metzner.uk) scans a book's ISBN and shows you the title,
-author, cover and a bit of blurb. The obvious source is Google Books or an Amazon
-scrape — but both mean handing someone's reading life to an ad company, which is
-exactly what the app is meant to avoid. So the metadata comes from
-[Open Library](https://openlibrary.org), a nonprofit run by the Internet Archive.
+[Verso](https://verso.metzner.uk) scans the barcode on a book and shows you the
+title, author, cover and a bit of blurb. The easy sources for that are Google
+Books or a scrape of Amazon — and both mean handing someone's reading life to an
+ad company, which is the one thing the app exists not to do. So the data comes
+from [Open Library](https://openlibrary.org) instead, run by the Internet
+Archive. Free, no tracking, no key.
 
-Free and privacy-friendly comes with a responsibility: don't hammer a charity's
-servers. Here's what I learned wiring it up.
+Which puts the responsibility somewhere else: it's a charity's servers, and I
+shouldn't be rude to them.
 
-## The description lives on the *work*, not the edition
+The first thing to know is that a book, in their data, is two things. There's the
+specific printing you're holding — one barcode, one publisher, one year — and
+there's the *book itself*, the thing every printing has in common. The blurb you
+want to show belongs to the book, not to the printing. So one scan is two
+questions: which book is this, and then, what is that book about.
 
-Open Library models books in two layers. An **edition** is one physical printing
-(one ISBN); a **work** is the abstract book that all its editions share. The
-blurb you want to show is on the *work* — `/works/{id}.json` — and often isn't on
-the edition record at all.
+The second thing cost me the most time. The obvious way to look up a barcode
+often simply says "never heard of it" — reliably so for German editions, which is
+most of my shelf. Searching for the same number, rather than asking for it
+directly, finds them. Same data, same servers, different door. It also comes back
+with extras worth having: first published in 1979, 42 editions, that kind of
+detail.
 
-So a lookup is two hops: resolve the ISBN to a work key, then fetch the work for
-its description. And the description field is a shape-shifter — sometimes a plain
-string, sometimes an object:
+Plenty of books have no cover on file,
+which means a missing image — and the browser will cheerfully ask again for that
+same missing image every time the list redraws. Pointless for me and rude to
+them, so I write down which covers don't exist and stop asking.
 
-```ts
-// A description is a plain string OR { type, value } — both occur for real.
-function textValue(d: unknown): string | null {
-  if (typeof d === 'string') return d.trim() || null;
-  if (d && typeof d === 'object' && 'value' in d) {
-    const v = (d as { value?: unknown }).value;
-    return typeof v === 'string' ? v.trim() || null : null;
-  }
-  return null;
-}
-```
+But writing down answers has a trap in it. **"Did I get an answer?" and "did the answer contain anything?" are different
+questions, and only the first one decides whether I'm allowed to remember it.**
+"This book has no blurb" is a real answer — remember it, stop asking. "The
+request timed out" is not an answer at all, and if you file it as one, a single
+moment of bad wifi leaves that book permanently blank, long after the connection
+came back, because your own notes now say you already checked.
 
-If you assume it's always a string, you get `[object Object]` in your UI the first
-time you hit the other shape. Both are valid; handle both.
+Being a good neighbour to somebody else's servers turns out to be mostly that:
+remember the noes, remember the yeses, and never write down a silence.
 
-## `search.json?isbn=` resolves what `/isbn/{isbn}.json` can't
+## The wiring, in code
 
-The intuitive endpoint is `/isbn/{isbn}.json`. It works — until it 404s, which
-happens surprisingly often for German editions. What consistently *does* resolve
-those ISBNs is the search endpoint:
+Two hops: search resolves the barcode to a work key, then the work carries the
+description. `search.json?isbn=` is also the only endpoint that returns
+`first_publish_year` and `edition_count`:
 
 ```ts
 const search = await getJson(
@@ -57,26 +60,15 @@ const doc = search?.docs?.[0];
 const workKey = typeof doc?.key === 'string' ? doc.key : null; // → /works/OL...W
 ```
 
-Two wins in one call. `search.json?isbn=` is the *only* endpoint that gives you
-`first_publish_year` and `edition_count` — nice "first published 1979, 42
-editions" details — and its `key` is already the work key, so the second hop to
-`/works/{key}.json` for the description falls straight out. It also resolves a
-bunch of ISBNs that the direct edition endpoint refuses. When I need just the
-title/author/cover for the scan result I use the lighter
-`/api/books?bibkeys=ISBN:…&jscmd=data` endpoint; the richer detail view uses
-`search.json`.
+`/isbn/{isbn}.json` is the intuitive endpoint and 404s far more often. For the
+lightweight scan result, `/api/books?bibkeys=ISBN:…&jscmd=data` is enough; the
+detail view uses the search hop above. Note that `search.publisher` aggregates
+across *every* edition, so cap it (`.slice(0, 3)`) unless you want fifty
+publisher names on screen.
 
-One caution: `search.publisher` is an *aggregate* across every edition of the
-work, so it can be a huge list. Cap it (`.slice(0, 3)`) or you'll render fifty
-publisher names.
-
-## Covers 404 — so cache the misses
-
-Covers come from `covers.openlibrary.org/b/isbn/{isbn}-M.jpg`. Add
-`?default=false` or a missing cover returns a blank placeholder image instead of
-a 404 — and you actually *want* the 404 so you know it's missing. But then the
-browser will re-request that dead URL on every render and every filter switch.
-Rude to a nonprofit, and pointless. So I remember the misses in `localStorage`:
+Covers live at `covers.openlibrary.org/b/isbn/{isbn}-M.jpg`. Add `?default=false`
+so a missing cover 404s instead of returning a blank placeholder — you want the
+404, then you remember it:
 
 ```ts
 const MISS_KEY = 'curio.coverMiss';
@@ -90,21 +82,8 @@ export function markCoverMissing(isbn: string): void {
 }
 ```
 
-Once a cover is known missing, `Cover.svelte` skips the network entirely and goes
-straight to a styled placeholder.
-
-## Cache the details too — but only when the call *completes*
-
-The detail lookup gets the same treatment: cache each ISBN's result (including a
-definitive "not found," stored as `null`) so expand/collapse or a revisit doesn't
-re-hit the API. But there's a subtle trap. If you cache on *any* exit, a timeout
-or an offline blip caches an empty answer — and now the book is permanently
-blurb-less even after you're back online, because the cache says "already looked,
-nothing there."
-
-The fix is a `completed` flag. Only a resolved HTTP response (200 *or* 404 —
-either is a definitive answer) is cacheable. A network error or an aborted
-timeout leaves `completed` false, so nothing is written:
+And the flag that separates "answered" from "found" — only a resolved response,
+200 *or* 404, may be cached:
 
 ```ts
 let result: BookDetails | null = null;
@@ -123,15 +102,5 @@ if (completed) {
 }
 ```
 
-The work fetch that adds the description is wrapped in its *own* try/catch inside
-the completed branch, because it's optional enrichment — if it fails we still
-cache the good search-based fields rather than throwing the whole thing away.
-
-## The lesson
-
-Being a good API neighbour isn't only about rate limits — it's about caching the
-*right* answers. Cache your 404s so you stop asking. Cache your successes so you
-don't ask twice. But never cache a *failure to reach the server*, or you'll turn
-one bad network moment into a permanently wrong result. "Did the call complete?"
-and "did it find anything?" are two different questions, and only the first one
-decides whether you're allowed to remember the answer.
+The optional work fetch sits in its own try/catch *inside* the completed branch,
+so a failed description doesn't throw away the good fields alongside it.

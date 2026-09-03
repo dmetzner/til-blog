@@ -1,40 +1,49 @@
 ---
-title: "Astro, for people who already know the web"
-description: "A 5-minute mental model of Astro for experienced devs — server-first rendering, islands, and content collections — without the getting-started fluff."
+title: "If you'd call it a site, Astro; if you'd call it an app, don't"
+description: "Why this blog isn't a React app: it sends finished pages and no JavaScript at all unless a part of the page actually needs it — and the line where that stops being the right trade."
 pubDate: 2026-06-18
 tags: ["astro", "web", "til"]
 ---
 
-I've spent years mostly in PHP — Symfony, plain JS and HTML. So when I built this
-blog with [Astro](https://astro.build), the surprise wasn't how new it felt — it
-was how *familiar*. Astro is server-first: it renders HTML and ships zero JS by
-default, the same instinct as a server-rendered PHP page, but with a modern
-component model and toolchain on top.
+I've spent years mostly in PHP. So when I built this blog with
+[Astro](https://astro.build), the surprise wasn't how new it felt — it was how
+*familiar*.
 
-If you already know the web — whether you come from PHP/Symfony or React/Vite —
-you don't need a "what is a component" tutorial. You need the mental model and the
-parts that are genuinely different. Here's the 5-minute version.
+The idea is that the page is finished before it reaches you. The words, the
+markup, the layout: all of it is assembled once, when the site is built, and what
+your browser downloads is the finished thing. **No JavaScript is sent at all**
+unless some specific part of the page actually needs it. Anyone who has written a
+server-rendered page will recognise that instinct immediately; the modern
+component tooling sits on top of it rather than replacing it.
 
-## The one idea: server-first, zero JS by default
+That's the opposite of how most current frameworks work. The common approach ships
+a program to your browser, which then builds the page on your device — every time,
+on every device, including the phone on a train. For a blog that's paying a real
+cost for nothing: there's no program here, just text.
 
-Astro renders your components to **HTML at build time** and ships **no
-JavaScript to the browser** unless you explicitly ask for it. That's the whole
-pitch. A React app sends a runtime + your component tree and hydrates everything;
-Astro sends HTML and hydrates *nothing* by default.
+Where it gets clever is the bits that *are* interactive. Instead of the whole page
+being live, individual pieces are — a theme toggle, a like button — and each one
+declares when it should wake up. Immediately? When the browser is idle? Only once
+it scrolls into view? Everything not marked stays inert, so you pay for
+interactivity exactly where you use it instead of across the entire page. That
+lever is the thing app-first setups don't hand you cheaply.
 
-If you've written PHP, this is home turf: the server produces HTML, the browser
-just shows it. Astro brings that instinct to the JS ecosystem — but instead of
-`echo`-ing strings you compose typed components, and instead of a full runtime on
-the client you ship none.
+The other feature that earns the switch, if you write content: the posts are
+plain Markdown files in a folder, with a declared shape — this must have a title,
+a date, a list of tags. Get one wrong and **the build fails instead of the
+website**. A typo'd date is a broken build on my laptop, not a broken page for a
+reader. Adding a post is dropping a file in a folder. No CMS, no glue.
 
-For content — blogs, docs, marketing, landing pages — this is the right trade.
-The page is just text and markup; there's nothing to hydrate. You get fast loads
-and clean HTML without opting out of a framework's runtime cost.
+Where I wouldn't use it: an app. A dashboard, an editor, anything where the whole
+screen is live and shares state. There you'd fight the model — every piece
+becomes interactive, and you've rebuilt a worse version of a framework designed
+for exactly that. My [portfolio](https://daniel.metzner.uk) stays on React
+because it's an interactive toy box; the blog is a blog.
 
-## `.astro` components run on the server
+## The model, in code
 
-An `.astro` file is two parts: frontmatter (between `---` fences) that runs **at
-build time** on the server, and a template that looks like JSX:
+An `.astro` file is two parts: frontmatter between `---` fences that runs **at
+build time on the server**, and a template that looks like JSX:
 
 ```astro
 ---
@@ -47,19 +56,12 @@ const newest = posts.slice(0, 5);
 </ul>
 ```
 
-`await` at the top level, hit a database, read the filesystem, call an API — it
-all happens during the build and only the resulting HTML is sent. The mental
-shift from React: **there is no client-side render of this component.** No
-`useState`, no effects, no re-render. If you need interactivity, you reach for an
-island.
+Top-level `await`, hit a database, read the filesystem — it all happens during the
+build and only HTML is sent. The mental shift from React: **there is no
+client-side render of this component.** No `useState`, no effects, no re-render.
 
-## Islands: opt into JS, per component
-
-The "islands architecture" is Astro's answer to interactivity. Most of the page
-is static HTML (the sea); the interactive bits are **islands** you hydrate
-individually. You can author them as Astro components with a `<script>`, or drop
-in a real React/Vue/Svelte/Solid component and hydrate it with a `client:`
-directive:
+Interactivity is an *island* — an Astro component with a `<script>`, or a real
+React/Vue/Svelte component hydrated with a `client:` directive:
 
 ```astro
 ---
@@ -68,27 +70,17 @@ import Counter from "../components/Counter.jsx"; // a real React component
 <Counter client:visible />
 ```
 
-The directive controls *when* the JS loads:
-
 - `client:load` — hydrate immediately
 - `client:idle` — wait for the main thread to be free
-- `client:visible` — wait until it scrolls into view (great for below-the-fold widgets)
+- `client:visible` — wait until it scrolls into view (great below the fold)
 - `client:only` — skip SSR, render only on the client
 
-Everything *not* marked stays zero-JS. So you pay for interactivity exactly where
-you use it, not for the whole page. This is the lever React-first setups don't
-give you cheaply.
+For small behaviour you don't need a framework at all: a plain `<script>` in an
+`.astro` file gets bundled and runs in the browser. This blog's theme toggle and
+imprint modal are ~60 lines of vanilla TS in one `<script>`.
 
-For small bits of behavior you don't even need a framework — a plain
-`<script>` in an `.astro` file gets bundled and runs in the browser. This blog's
-theme toggle and Impressum modal are ~60 lines of vanilla TS in one `<script>`,
-no React island needed.
-
-## Content collections: typed Markdown
-
-If you're doing content, this is the feature that earns the switch. Point a
-collection at a folder of Markdown/MDX and give it a [Zod](https://zod.dev)
-schema:
+Content collections are the typed-Markdown half — point a loader at a folder and
+give it a [Zod](https://zod.dev) schema:
 
 ```ts
 // src/content.config.ts
@@ -108,35 +100,14 @@ const posts = defineCollection({
 export const collections = { posts };
 ```
 
-Now `getCollection("posts")` is **fully typed**, frontmatter is validated at
-build (a typo'd date fails the build, not production), and adding a post is
-literally dropping a `.md` file in the folder. No CMS, no glue code.
+`getCollection("posts")` is then fully typed and frontmatter is validated at build.
 
-## When to reach for it — and when not to
+Three gotchas worth knowing up front:
 
-Reach for Astro when the page is **mostly content**: blogs, docs, portfolios,
-marketing, anything where most of the screen is static and interactivity is
-sprinkled in. The islands model means a few dynamic widgets don't drag a runtime
-onto the whole site.
-
-Don't reach for it for an **app** — a dashboard, an editor, anything that's a
-stateful SPA with shared client state across the whole screen. There you'd fight
-the model: everything becomes a `client:load` island and you've reinvented a
-worse Next.js. Use a real app framework (or just Vite + React) for that. I keep
-my [portfolio](https://daniel.metzner.uk) on React/Vite for exactly this reason —
-it's an interactive toy box — and the blog on Astro.
-
-The rule of thumb I use: **if you'd describe it as "a site," Astro; if you'd
-describe it as "an app," don't.**
-
-## Gotchas worth knowing up front
-
-- Frontmatter runs **once, at build** — not per request (unless you opt into SSR
-  with an adapter). "Why isn't my `Date.now()` updating?" Because it ran at build.
-- A `.astro` component can't hold client state. Interactivity = island or
-  `<script>`. Don't try to make `.astro` behave like a React component.
-- Styles in an `.astro` file are **scoped by default**. Reach for a global
-  stylesheet or `is:global` when you actually want global.
+- Frontmatter runs **once, at build** — not per request, unless you opt into SSR
+  with an adapter. "Why isn't my `Date.now()` updating?" Because it ran at build.
+- Styles in an `.astro` file are **scoped by default**. Use a global stylesheet or
+  `is:global` when you actually mean global.
 
 ## Follow-up resources
 
@@ -144,5 +115,3 @@ describe it as "an app," don't.**
 - [Islands Architecture](https://jasonformat.com/islands-architecture/) — Jason Miller's original post that named the pattern.
 - [Content collections guide](https://docs.astro.build/en/guides/content-collections/) — the typed-Markdown workflow in full.
 - [Astro's `client:` directives](https://docs.astro.build/en/reference/directives-reference/#client-directives) — the complete hydration reference.
-
-That's the model. The rest is just the docs.

@@ -1,22 +1,51 @@
 ---
-title: "Local-first, then \"where did my data go?\""
-description: "Verso works fully offline before you ever sign in. Then logging in switched to cloud mode and hid the local books — never deleted, but it sure looked like data loss. Here's the fix."
+title: "Signing in almost ate twenty books"
+description: "Verso works before you ever sign in — which is exactly why signing in can make twenty books vanish from the screen with nothing deleted. What I built instead."
 pubDate: 2026-07-25
 tags: ["web", "ux", "til"]
 draft: false
 ---
 
-[Verso](https://verso.metzner.uk) is local-first on purpose. You open it, scan
-books, build libraries — all in `localStorage`, no account, no network. Signing
-in is optional, an upgrade you take when you want your shelf on your phone *and*
-your laptop. That's a lovely first-run experience. It also set a trap I walked
-straight into.
+[Verso](https://verso.metzner.uk) works before you sign in. You open it, scan
+books, build shelves — no account, no network, nothing to agree to. An account is
+optional, the thing you add when you want your shelf on the phone *and* the
+laptop. It's a lovely way to meet an app. It also sets a trap, and I nearly
+walked into it while building the login.
 
-## The bug that isn't a bug
+Someone adds twenty books, likes the app, creates an account.
+The app now looks at the account for its data — and the account is brand new, so
+it's empty. Twenty books on screen, then none. Nothing was deleted; the books are
+sitting untouched on the device where they always were. But the screen says
+otherwise, and the screen is what people believe. That's the worst imaginable
+moment to look like data loss: immediately after the one action that was supposed
+to *protect* their books.
 
-The store runs in one of two modes — **local** (`localStorage`) or **cloud**
-(Supabase) — behind a single read API. Logging in calls `useCloud()`, which
-swaps out the backing state for whatever's in your account:
+The tempting fix is to quietly merge the device's books into the new account.
+Don't. Do that and you get duplicates on the second login, or worse — on a shared
+computer, someone else's stale shelf lands in your account, or yours gets buried
+under theirs. Silent cleverness with other people's data goes wrong in ways they
+can't undo.
+
+So the app notices instead of acting. After signing in, it checks whether there's
+anything on this device and, if so, asks — once: *you have 20 books here, add
+them to your account?* Nothing moves until you say yes. If you say no, it never
+brings it up again.
+
+Two details in the import earn their place. It matches shelves **by name**, so
+"Meine Bibliothek" on the device joins "Meine Bibliothek" in the account instead
+of becoming a second one beside it. And it only ever **copies**: everything goes
+into the account, the device's copy stays exactly where it is. If the import dies
+halfway through, nothing is lost and you can simply run it again.
+
+"Never clobber" beats "clever merge" every time. The bug would have been that the app didn't
+*say so* — and in an app that works offline first, the gap between "your data is
+fine" and "your data looks gone" is the entire experience.
+
+## The code behind the offer
+
+Two modes — on-device or account — sit behind
+[one read API](/posts/svelte-5-runes-a-store-behind-a-synchronous-read-api/), so
+signing in swaps the source underneath the same views:
 
 ```ts
 export async function useCloud() {
@@ -26,25 +55,9 @@ export async function useCloud() {
 }
 ```
 
-Now picture a brand-new user: they add twenty books offline, love it, create an
-account. `useCloud()` runs, fetches their cloud library — which is *empty* — and
-replaces `state.books` with `[]`. Every book they added vanishes from the screen.
-
-The books were never deleted. They're sitting untouched in `localStorage` under a
-different key. But the user doesn't know that. They see twenty books, then zero,
-right after the one action ("sign in") that was supposed to *protect* their data.
-That's the worst possible moment to look like data loss — and technically nothing
-was lost at all.
-
-## The fix: detect, then *offer* — never auto-clobber
-
-The instinct is to auto-merge local into cloud on login. Don't. Auto-migration is
-how you get duplicated books, or worse, someone's cloud library silently
-overwritten by a stale local copy on a shared machine. The right move is to
-*notice* on-device data and *offer* to import it, exactly once.
-
-After a cloud login, Verso peeks at the local snapshot and raises a flag — gated
-by a "have we already asked on this device?" marker so it never nags twice:
+That assignment is the whole hazard: an empty account replaces `state.books` with
+`[]`. So after loading, peek at the local snapshot and raise a flag — gated by an
+"already asked on this device" marker:
 
 ```ts
 const MIGR = 'curio.migrated';
@@ -57,15 +70,9 @@ status.pendingImport =
     : 0;
 ```
 
-`pendingImport` drives a one-time banner: "You have 20 books on this device — add
-them to your account?" The user decides. Nothing moves until they say so.
-
-## Mapping local libraries to cloud ones by name
-
-When they accept, the import maps each *local* library onto a *cloud* library **by
-name** — reusing one that already exists, creating it if it doesn't — so
-"Meine Bibliothek" locally becomes "Meine Bibliothek" in the cloud instead of a
-second, duplicate library:
+`pendingImport` drives the one-time banner. The import itself maps libraries by
+name, gives every book a fresh `id` so it can't collide with something already in
+the account, and never writes to the local copy:
 
 ```ts
 const byName = new Map(state.libraries.map((l) => [l.name, l.id]));
@@ -86,32 +93,5 @@ await supabase.from('books').insert(rows);
 localStorage.setItem(MIGR, '1');    // done — never offer again on this device
 ```
 
-Two details that matter. Each imported book gets a **fresh `id`** so it can't
-collide with anything already in the account. And the whole thing is **additive**
-— it inserts into the cloud and never touches the local copy. If the import fails
-halfway (it's optimistic, network-backed), the on-device books are still exactly
-where they were. Worst case you re-run it; you never lose the original.
-
-The `curio.migrated` flag is what makes it a genuinely *one-time* offer. Without
-it, every login would re-prompt or re-import. With it, the local data is
-"handled" and the app stops asking.
-
-## The broader lesson
-
-Local-first is a great default, but the moment you add accounts you've created a
-**migration UX problem**, and it's easy to miss because it only bites users who
-did the right thing — used the app before signing up. The principles that got me
-out of it generalize:
-
-- **Switching data sources should never look like deletion.** If cloud mode hides
-  local data, tell the user it still exists and where it went.
-- **Detect and offer; don't auto-merge.** The user knows whether this device's
-  data should join this account. You don't.
-- **Guard the offer with a flag** so it's exactly one decision, not a recurring
-  nag or an accidental re-import.
-- **Migrate additively.** Copy into the destination, keep the source intact until
-  you're sure. "Never clobber" beats "clever merge" every time.
-
-The books were safe the whole time. The bug was that the app didn't *say so* —
-and in local-first apps, the gap between "your data is fine" and "your data looks
-gone" is the entire user experience.
+The accounts and tables behind this are shared with two other sites, which works
+for [reasons worth their own post](/posts/one-supabase-project-three-static-apps/).
