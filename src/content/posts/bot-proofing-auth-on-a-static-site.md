@@ -1,6 +1,6 @@
 ---
 title: "I locked myself out of my own app with one toggle"
-description: "A static site can have real signup protection without running a server of your own. The dangerous part isn't the setup — it's the order you switch the two halves on."
+description: "A static site can protect signup without its own server, but enabling enforcement before the client update locks everyone out."
 pubDate: 2026-07-24
 tags: ["security", "web", "til"]
 draft: false

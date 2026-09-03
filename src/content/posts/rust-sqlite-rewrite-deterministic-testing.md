@@ -1,6 +1,6 @@
 ---
 title: "The moat isn't the code — it's the tests"
-description: "Turso is rewriting SQLite in Rust, and Rust is the least interesting part. What makes SQLite trustworthy can't be copied, so they're trying to manufacture it instead."
+description: "SQLite's real moat is its test suite. Turso's Rust rewrite is trying to recreate that confidence with deterministic simulation."
 pubDate: 2026-06-20
 tags: ["rust", "databases", "testing", "til"]
 draft: false
@@ -13,7 +13,7 @@ most-tested C codebase in existence sounds great on a conference slide and ends 
 tears.
 
 Then I read how [Turso](https://turso.tech/blog/introducing-limbo-a-complete-rewrite-of-sqlite-in-rust)
-is doing it, and the interesting part isn't Rust at all.
+is doing it. The rewrite matters for its testing strategy, not its language.
 
 The C code is the easy half to copy: it's public, well structured, and the file
 format is documented. What makes SQLite *SQLite* is the testing. It ships roughly

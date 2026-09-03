@@ -1,6 +1,6 @@
 ---
-title: "Three apps in one free database, without the catastrophe"
-description: "A portfolio, a blog and a book-library app all share one free database. It works because of two rules: only ever add, and never treat the key in the browser as a secret."
+title: "Three small apps can share one Supabase project"
+description: "Three small apps can share one Supabase project safely if schemas stay additive and browser keys are treated as public."
 pubDate: 2026-07-21
 tags: ["databases", "security", "web", "til"]
 draft: false

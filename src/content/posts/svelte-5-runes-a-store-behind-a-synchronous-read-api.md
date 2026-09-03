@@ -1,6 +1,6 @@
 ---
 title: "No screen should know where the data lives"
-description: "Every view asks for books and gets them instantly — none of them knows whether the answer came from the device or from an account. One object in the middle, and one honest cost."
+description: "One synchronous read API hides whether books live on the device or in an account; loading state is the trade-off."
 pubDate: 2026-07-22
 tags: ["svelte", "web", "til"]
 draft: false

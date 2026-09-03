@@ -1,15 +1,15 @@
 ---
 title: "The cleanup that never ran"
-description: "I stamped every room with the date it should disappear, and assumed that was cleanup. It deleted nothing — and the same one-record shortcut was throttling every write too."
+description: "Firestore TTL needs a policy, not just a date; one shared document can also throttle every write."
 pubDate: 2026-08-10
 tags: ["firestore", "databases", "cloud-run", "til"]
 draft: false
 ---
 
 I built a planning-poker room for my team: open a link, a seat appears with your
-name, everyone plays a card face down, somebody reveals. The interesting part
-isn't the votes — it's who is still *there*, and who closed their laptop twenty
-minutes ago without saying anything.
+name, everyone plays a card face down, somebody reveals. The votes are easy. The
+useful state is who is still *there*, and who closed their laptop twenty minutes
+ago without saying anything.
 
 I stored a room the obvious way: one record holding everything about it. That
 quietly decided two things I hadn't thought of as decisions.

@@ -1,6 +1,6 @@
 ---
 title: "Stop watching the terminal — let it text you"
-description: "A long job can send you a message on your phone when it's finished. It's a chat with a bot and one line of shell — and the interesting part is what you should and shouldn't send through it."
+description: "A Telegram bot can report when a long job finishes; the useful decision is what is safe to put in the message."
 pubDate: 2026-08-27
 tags: ["tooling", "apis", "til"]
 draft: false
@@ -15,7 +15,7 @@ and then one line.** You message Telegram's setup bot, it hands you a key, and
 from then on your machine can write to you like a person would. Nothing to
 install, nothing to host.
 
-The part worth thinking about isn't the setup, it's what you put in the message.
+Setup is the easy part. What belongs in the message is the real decision.
 A bot chat is a normal Telegram chat, so it isn't end-to-end encrypted — those
 messages are exactly as private as Telegram itself. Mine only ever sends a nudge:
 *build green*, *job done*, *disk almost full*. No names, no numbers, no content.
