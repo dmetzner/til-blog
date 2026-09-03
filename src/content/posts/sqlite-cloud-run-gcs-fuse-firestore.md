@@ -1,6 +1,6 @@
 ---
 title: "A mounted bucket is not a database — even when SQLite seems to work"
-description: "What a tiny Cloud Run deployment taught me about ephemeral containers, deceptive GCS FUSE persistence, Firestore transactions, cutover proofs, and the one innocent polling loop that can dominate the bill."
+description: "A mounted cloud bucket can make SQLite look persistent while breaking its guarantees; Firestore brings different traps."
 pubDate: 2026-07-18
 tags: ["cloud-run", "databases", "sqlite", "firestore", "til"]
 draft: false

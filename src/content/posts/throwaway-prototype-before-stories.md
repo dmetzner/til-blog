@@ -1,6 +1,6 @@
 ---
 title: "Agile's feedback loop starts one slice too late"
-description: "An experiment: before the first real slice, vibe-code a throwaway prototype for a few tokens, let stakeholders click it, and start the agile loop already aimed right."
+description: "A disposable prototype can move stakeholder feedback ahead of the first production slice, if the team really deletes it."
 pubDate: 2026-06-22
 tags: ["process", "ai", "agile", "til"]
 draft: false

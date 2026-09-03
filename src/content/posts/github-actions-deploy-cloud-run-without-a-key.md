@@ -1,6 +1,6 @@
 ---
 title: "One missing line, and all of GitHub can deploy to your project"
-description: "CI can deploy without a password at all — it proves which repository is asking. Leave out one condition and it proves nothing, silently, and any repo anyone creates can walk in."
+description: "Passwordless CI needs two scopes: the identity provider names the repository, and IAM limits who may impersonate the deploy account."
 pubDate: 2026-08-10
 tags: ["cloud-run", "security", "tooling", "til"]
 draft: false

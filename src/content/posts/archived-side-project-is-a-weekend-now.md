@@ -1,6 +1,6 @@
 ---
-title: "Your legacy app is dead — long live your app"
-description: "A Java Android card game I gave up on years ago is a playable web and Android app again after five days — porting got cheap, being correct did not."
+title: "The port took a day; getting the game right took four"
+description: "An archived Java card game became a web and Android app in five days; most of the work was validating the rules and interface."
 pubDate: 2026-08-23
 tags: ["ai", "process", "testing", "til"]
 draft: false

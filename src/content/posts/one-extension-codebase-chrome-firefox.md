@@ -1,6 +1,6 @@
 ---
 title: "The Firefox port I budgeted for didn't exist"
-description: "One browser-extension folder loads in both Chrome and Firefox unchanged. The only real fork is how you install it permanently — and the reputations there are backwards."
+description: "Chrome and Firefox can load the same extension code unchanged; permanent installation is where their paths diverge."
 pubDate: 2026-07-04
 tags: ["web", "tooling", "til"]
 draft: false

@@ -1,6 +1,6 @@
 ---
 title: "If you'd call it a site, Astro; if you'd call it an app, don't"
-description: "Why this blog isn't a React app: it sends finished pages and no JavaScript at all unless a part of the page actually needs it — and the line where that stops being the right trade."
+description: "Astro sends finished pages by default and wakes only the interactive parts; that trade stops working when the whole screen is an app."
 pubDate: 2026-06-18
 tags: ["astro", "web", "til"]
 ---
@@ -16,13 +16,13 @@ unless some specific part of the page actually needs it. Anyone who has written 
 server-rendered page will recognise that instinct immediately; the modern
 component tooling sits on top of it rather than replacing it.
 
-That's the opposite of how most current frameworks work. The common approach ships
-a program to your browser, which then builds the page on your device — every time,
-on every device, including the phone on a train. For a blog that's paying a real
-cost for nothing: there's no program here, just text.
+That's the opposite of a client-rendered app. It ships a program to your browser,
+which then builds the page on your device — every time, on every device, including
+the phone on a train. For a blog that's paying a real cost for nothing: there's no
+program here, just text.
 
-Where it gets clever is the bits that *are* interactive. Instead of the whole page
-being live, individual pieces are — a theme toggle, a like button — and each one
+Interactivity happens a piece at a time. Instead of the whole page being live,
+individual pieces are — a theme toggle, a like button — and each one
 declares when it should wake up. Immediately? When the browser is idle? Only once
 it scrolls into view? Everything not marked stays inert, so you pay for
 interactivity exactly where you use it instead of across the entire page. That

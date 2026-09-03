@@ -1,6 +1,6 @@
 ---
 title: "PHP's array_is_list() is underrated"
-description: "JSON has arrays and objects; PHP has one type for both. So \"is this a list or a map?\" is a question you keep asking — and since 8.1 you stop writing the answer yourself."
+description: "PHP uses one array type for both JSON lists and objects; array_is_list() distinguishes them without another helper."
 pubDate: 2026-06-19
 tags: ["php", "til"]
 ---
@@ -19,7 +19,7 @@ array_is_list(['a' => 1]);       // false
 array_is_list([]);               // true — empty counts as a list
 ```
 
-The catch is that it only looks at keys, never at contents — and an empty array
+It only looks at keys, never at contents — and an empty array
 is a list. That's usually what you want when you're deciding whether to encode
 something as a JSON array or object, and it bites if "empty" is supposed to mean
 "nothing decided yet". Same idea as

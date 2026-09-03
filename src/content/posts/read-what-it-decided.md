@@ -26,14 +26,13 @@ already know what it was trying to be. Same idea as the
 [phone notification](/posts/stop-watching-the-terminal/): the short thing tells me
 whether to care, the long thing waits behind a login.
 
-Now the catch, and it's a real one: **the page is written by the same thing that
+The conflict is obvious: **the page is written by the same thing that
 did the work.** It's a claim, not proof. It can be confidently wrong, and it can
 quietly leave something out. So it changes the *order* I read in, never whether I
 check at all. On a small change it's ceremony — skip it.
 
-Which is the one advantage an [ordinary written
-report](/posts/most-reports-bury-the-conclusion/) still has over this: the author
-isn't also the defendant.
+An [ordinary written report](/posts/most-reports-bury-the-conclusion/) still has
+one advantage over this: the author isn't also the defendant.
 
 ## What it actually is
 

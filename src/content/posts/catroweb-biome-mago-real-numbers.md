@@ -1,6 +1,6 @@
 ---
 title: "One tool shipped, one never ran, and neither turned CI red"
-description: "The follow-up with real numbers: 5.2× not 35×, \"four tools to two\" was marketing, and the afternoon went to a supply-chain scanner that fired because I regenerated a lockfile."
+description: "The real migration numbers: 5.2×, not 35×, plus a lockfile regeneration that triggered the supply-chain scanner."
 pubDate: 2026-07-13
 tags: ["rust", "php", "tooling", "til"]
 draft: false

@@ -1,6 +1,6 @@
 ---
 title: "On a small tip, the 5% isn't the fee that hurts"
-description: "Adding a 'buy me a coffee' button to a side project, I went to check the platform's 5% cut — and found the fixed per-transaction fee is what actually eats a small coffee."
+description: "On a $3 tip, the fixed card fee matters more than the platform's advertised 5% cut."
 pubDate: 2026-07-28
 tags: ["payments", "web", "til"]
 draft: false

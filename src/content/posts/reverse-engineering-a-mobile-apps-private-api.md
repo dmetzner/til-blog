@@ -1,6 +1,6 @@
 ---
 title: "Good app, no public API — so I gave it one"
-description: "No public API means no custom tooling, no dashboard tile, nothing an agent can call. So I read what my own phone sends — and the useful lesson was the endpoint that answered \"give me today\" with a cheerful, completely empty success."
+description: "An undocumented mobile API returned a convincing empty success; comparing it with the app exposed the real data path."
 pubDate: 2026-08-09
 tags: ["android", "apis", "reverse-engineering", "mobile", "til"]
 draft: false
