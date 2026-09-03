@@ -1,35 +1,75 @@
 ---
-title: "CI can deploy to Cloud Run without a key — and one missing line trusts all of GitHub"
-description: "How Workload Identity Federation replaces a service-account key in GitHub Actions, which three IAM grants a deploy actually needs, and the two flags that quietly decide whether your service survives the deploy."
+title: "One missing line, and all of GitHub can deploy to your project"
+description: "CI can deploy without a password at all — it proves which repository is asking. Leave out one condition and it proves nothing, silently, and any repo anyone creates can walk in."
 pubDate: 2026-08-10
 tags: ["cloud-run", "security", "tooling", "til"]
 draft: false
 ---
 
-For a while I shipped a small internal tool by typing `gcloud run deploy` in a
-terminal. It worked, and it had one flaw that only shows up later: nobody could
-answer "which revision is live?" A fix could be merged, reviewed, green in CI, and
-still sitting on nobody's laptop.
+For a while I shipped a small internal tool by typing a deploy command in a
+terminal. It worked, and it had the flaw that only shows up later: nobody could
+answer "which version is live?" A fix could be written, reviewed, tested, green —
+and still sitting on nobody's laptop.
 
-The usual next step is a service-account key in GitHub secrets. I've done that at work.
-A JSON key is a password with no expiry that you paste into a third party, and it grants
-exactly as much six months from now as it does today. Nothing about the deploy needs a
-long-lived secret. It needs *proof that this repository is asking*.
+The usual next step is to paste a password into GitHub so the pipeline can deploy
+for you. I've done that at work. It's a password with no expiry, held by a third
+party, that grants exactly as much in six months as it does today. And nothing
+about a deploy actually needs a long-lived secret. What it needs is **proof that
+this repository is asking**.
 
-That proof is what **Workload Identity Federation** does, and the mechanism is
-simpler than the setup pages make it look.
+That proof exists, and the setup pages make it look harder than it is. Each run,
+the pipeline asks GitHub to vouch for itself, GitHub hands over a short-lived note
+saying which repository and which branch is running, and my cloud project trades
+that note for a credential good for the next hour. Nothing is stored anywhere. If
+somebody steals the note, it's already expired.
 
-## What actually happens per run
+The thing you tell your project to trust is **GitHub** — not *your* GitHub. Every public
+repository on the platform gets its notes signed by the same authority. So if you
+say "accept notes from GitHub" and stop there, any repository anybody creates
+this afternoon can present one and your project will accept it. You have to also
+say *and it must be my repository*, and that's one line of configuration with
+nothing to warn you when it's missing. GitHub's own docs are blunt about it: you
+must define at least one condition, or untrusted repositories can reach your
+cloud resources.
 
-GitHub runs an OIDC provider. Give a job `id-token: write` and it can ask GitHub for
-a short-lived JWT describing itself — issuer `https://token.actions.githubusercontent.com`,
-plus claims like `repository`, `ref`, `workflow` and `environment`. Google's Security
-Token Service accepts that JWT, checks the issuer's signature, and hands back a Google
-credential.
+The permissions surprised me by how few there are. A deploy needs to push a
+package, roll out a new version of one service, and — the one everybody forgets —
+permission to hand that service the identity it runs under. That third one
+produces an error that reads like a completely different problem, so you go and
+add powers in the wrong place. The deploy identity can't read the database and
+can't touch the login layer. It builds, pushes, and rolls one service.
 
-You wire it up in two halves. A **pool** is the trust boundary; a **provider** inside it
-says which external issuer is accepted and how its claims map onto attributes you can
-assert on:
+Then the flag that would have locked everyone out. There are two ways to set the
+service's configuration: one *adds* what you list, the other *replaces
+everything* and deletes what you didn't mention. One word apart. My service sits
+behind a company login and refuses to serve if it can't verify who it should
+trust — which is the correct way round, and also means the wrong flag turns
+"deploy" into "nobody at the company can log in", on every push, forever. Same
+goes for settings you leave out entirely: whatever is already on the service
+carries forward, and restating the security boundary in a pipeline file just
+gives it a second source of truth that will drift.
+
+Deploy configuration is shared, mutable state. Prefer the verbs that patch it.
+
+## When I wouldn't bother
+
+If you deploy by hand twice a year, this is more machinery than a password. And
+this kind of trust is per-repository by design: at twenty repositories you need a
+real scheme, or you'll end up with a single identity that can deploy everything —
+which is the password problem again with extra steps.
+
+The honest annoyance is that none of it can be tested locally. The first proof is
+a real push, and the error messages point at the wrong layer in both of the ways
+you'll get it wrong. Budget one confusing run.
+
+What a stored password really costs you isn't rotation — it's that you can never
+watch it being used.
+
+## The setup, in commands
+
+A *pool* is the trust boundary; a *provider* inside it names the external issuer
+and maps its claims. The mapping makes claims available; the **condition** decides
+who gets in at all:
 
 ```bash
 gcloud iam workload-identity-pools providers create-oidc github \
@@ -39,23 +79,9 @@ gcloud iam workload-identity-pools providers create-oidc github \
     --attribute-condition="assertion.repository=='my-org/my-repo'"
 ```
 
-Two lines are doing very different jobs there. The mapping makes claims *available*.
-The condition decides who gets in at all.
-
-## Skip the condition and you have trusted all of GitHub
-
-This is the part I want to be loud about, because the failure is silent. The issuer
-you configured is not *your* GitHub — it's GitHub. Every public repository on the
-platform gets tokens signed by the same issuer, with the same key. If your provider
-accepts anything from that issuer, then any repo anybody creates can mint a token your
-pool will exchange.
-
-GitHub's own documentation is blunt about it: you *must* define at least one condition,
-or untrusted repositories can access your cloud resources. Google's action docs say the
-same thing from the other side — always add an attribute condition, and pin permissions
-per repository with `attribute.repository/${REPO}`.
-
-So the grant that finishes the setup is a `principalSet`, not a user:
+The grant that finishes it is a `principalSet`, not a user — *whatever comes
+through this pool carrying that repository attribute may act as this service
+account*:
 
 ```bash
 gcloud iam service-accounts add-iam-policy-binding "$DEPLOY_SA" \
@@ -63,37 +89,21 @@ gcloud iam service-accounts add-iam-policy-binding "$DEPLOY_SA" \
     --member="principalSet://iam.googleapis.com/projects/$PROJECT_NUMBER/locations/global/workloadIdentityPools/github/attribute.repository/my-org/my-repo"
 ```
 
-Read it as a sentence: *whatever comes through this pool carrying that repository
-attribute may act as this service account.* Belt and braces — the condition keeps
-strangers out of the pool, the `principalSet` keeps the right strangers away from the
-wrong identity.
+Belt and braces: the condition keeps strangers out of the pool, the `principalSet`
+keeps the right strangers away from the wrong identity. There's also **direct**
+federation with no service account in the middle — fewer moving parts, credential
+capped at ten minutes instead of an hour — but it needs every resource's IAM to
+accept a principalSet, which not every API does.
 
-There's also **direct** federation, where the pool holds permissions on resources with no
-service account in the middle — fewer moving parts, and a credential capped at ten
-minutes instead of an hour. It needs each resource's IAM to accept a principalSet, which
-not every API does, so a purpose-made deploy account still has the fewest surprises.
-
-## Three grants, and the one everybody forgets
-
-A deploy is a smaller job than it feels like. Mine holds exactly three permissions:
+The three grants, in full:
 
 - `artifactregistry.writer` on one repository — push an image
 - `run.developer` on one service — roll a revision
-- `iam.serviceAccountUser` on the *runtime* service account — deploy something that
-  runs as that identity
+- `iam.serviceAccountUser` on the **runtime** service account — deploy something
+  that runs as that identity
 
-The third is the one that produces a baffling error. Cloud Run's docs list it plainly:
-deploying a service that runs as a service account requires Service Account User on
-that identity. Without it you get a permission failure that reads like your deploy
-account lacks Cloud Run access, and you go add roles in the wrong place. The deploy
-identity cannot read the database and cannot touch the auth layer — it can build,
-push, and roll one service.
-
-I also skipped `gcloud run deploy --source .` in CI. It's a lovely command locally: it
-uploads your source, has Cloud Build build it, stages it in a bucket. In CI it means
-granting storage and build permissions for work the pipeline already does — CI builds
-the image anyway. Building in the job and deploying `--image` kept the permission set at
-three lines and made the deploy step a revision roll:
+The workflow. `id-token: write` is what lets the job request the note at all — its
+absence looks like a broken provider:
 
 ```yaml
 permissions:
@@ -118,42 +128,13 @@ steps:
         --update-env-vars "BUILD_SHA=$GITHUB_SHA"
 ```
 
-Neither `WIF_PROVIDER` nor `DEPLOY_SA` is a secret. They're repo *variables* — a path
-and an email, useless without a token GitHub will only mint for that repository.
+Neither `WIF_PROVIDER` nor `DEPLOY_SA` is a secret — they're repo *variables*, a
+path and an email, useless without a token GitHub will only mint for that
+repository. I also skipped `--source .` in CI: it's lovely locally, but it means
+granting storage and build permissions for work the pipeline already does.
 
-## The flag that would have locked everyone out
-
-Look at the last line again. `--update-env-vars` adds or changes variables. Its
-neighbour `--set-env-vars` is documented as destructive: it deletes previously set
-variables that aren't in the new list.
-
-My service sits behind Google's Identity-Aware Proxy, and the app verifies the signed
-IAP assertion against an audience it reads from an environment variable. It fails closed
-when that variable is missing — which is the right way round, and also means one wrong
-flag in CI turns "deploy" into "nobody in the company can log in", on every push,
-forever. Same story for the flags that aren't there: no `--iap`, no service account, no
-scaling. Whatever is already on the service carries forward, and restating the security
-boundary in a workflow file gives it a second source of truth that will drift.
-
-Deploy configuration is a shared mutable object. Prefer the verbs that patch it.
-
-## When I wouldn't bother
-
-If you deploy by hand twice a year, this is more machinery than a key. And federation
-is per-repository trust by design: at twenty repos you need a real scheme — an
-org-scoped condition plus per-repo service accounts — or you'll end up with one
-identity that can deploy everything, which is the key problem again with extra steps.
-
-The honest annoyance is that none of it can be tested locally. The first proof is a
-real push to `main`, and the error messages point at the wrong layer: a missing
-`id-token: write` looks like a broken provider, a missing `serviceAccountUser` looks
-like a missing Cloud Run role. Budget one confusing run.
-
-What I'd keep as the rule of thumb: **if CI can deploy, the credential should be minted
-per run and scoped to one repo, one service, one registry.** The thing a key really costs
-you isn't rotation — it's that you can never watch it being used. Federation is the same
-deploy with that removed, and the line most likely to fail silently is the condition, not
-the token.
+And the destructive pair, by name: `--update-env-vars` adds or changes;
+`--set-env-vars` **deletes** what isn't in the new list.
 
 ## Follow-up resources
 

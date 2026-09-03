@@ -9,7 +9,7 @@ draft: false
 I added a *buy me a coffee* button to [Verso](https://verso.metzner.uk), my
 little book-scanning side project. Before wiring it up I wanted to know the
 obvious thing: of a €3 coffee, how much actually lands in my account? I assumed
-the answer was "minus 5%". It isn't — and the reason is worth a note.
+the answer was "minus 5%". It isn't.
 
 ## The fee that hides behind the headline
 
@@ -35,7 +35,7 @@ constant; the thing moving the number is Stripe's fixed **\$0.30**, which is a
 
 ## So skip the platform and go direct?
 
-That was my next thought. Direct Stripe from Austria is
+Direct Stripe from Austria is
 [1.5% + €0.25](https://stripe.com/pricing) on a standard EEA card (BMC bills in
 dollars, my Stripe settles in euros — mind the currency, but the shape is the
 same), so a €3 coffee nets ~€2.70 (≈90%) — you drop the 5% platform cut, the
@@ -44,17 +44,16 @@ Real money over time. But you still pay the **fixed €0.25**, because
 that fee isn't the platform's, it's the card network's, and nobody makes it
 disappear.
 
-Which is the actual lesson: on small one-off tips, the fixed per-transaction fee
-dominates, whoever you route through. The percentage cuts are the part you can
-shop around; the fixed fee is just the cost of moving small money.
+Which is the actual lesson: the percentage cuts are the part you can shop around,
+and the fixed per-transaction fee is just the cost of moving small money — it
+dominates a small tip whoever you route through.
 
 So: if you already have a site and want to keep the extra ~8 points a small
 coffee loses to the stack (the platform's own cut *plus* the lower card rate), a
 Stripe [Payment Link](https://stripe.com/payments/payment-links) is a button you
 can host yourself. If you want a hosted page, discovery, and zero setup, BMC's stack
-is a fair price for not building any of that. Either way, don't lose sleep over
-the 5% — and gently nudge people toward one bigger coffee instead of three small
-ones.
+is a fair price for not building any of that. Either way: gently nudge people
+toward one bigger coffee instead of three small ones.
 
 ## Follow-up resources
 

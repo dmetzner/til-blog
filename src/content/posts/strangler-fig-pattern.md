@@ -12,7 +12,7 @@ I do this constantly. I can never remember it has a name.
 
 It's the **strangler fig** pattern. Martin Fowler [named it back in 2004](https://martinfowler.com/bliki/StranglerFigApplication.html), after the fig vines he watched in the Australian rainforest: they germinate up in the branches of a host tree, send roots down around the trunk, and slowly envelop it until the original is hollow and gone. No felling, no big-bang cutover day — the new thing grows around the old until the old is redundant.
 
-The catch is the seam. It only works if you can *intercept* the calls — a facade in front that routes each request to old or new. No seam to hook into (legacy source you can't touch, requests you can't route) and you're back to the rewrite you were trying to avoid.
+The catch is the seam. It only works if you can *intercept* the calls — something sitting in front of both systems that decides, per request, which one answers. No seam to hook into (legacy source you can't touch, requests you can't route) and you're back to the rewrite you were trying to avoid.
 
 The technique was never the problem — the name was. Strangler fig.
 

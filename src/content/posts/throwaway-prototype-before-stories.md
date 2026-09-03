@@ -12,22 +12,20 @@ slice clean. And it mostly works — until someone *uses* that first real slice 
 says "oh — not like that." The stories were right. The shared understanding
 wasn't. So we loop again — except now we're reworking shipped code, not a sketch.
 
-Here's the part nobody says out loud: the agile loop only starts *after* you've
+The agile loop only starts *after* you've
 built something real. Getting feedback *before* the first slice would have meant
 building a full prototype up front, and that was never worth it — cheaper to ship
 the slice and find out. [Story mapping](https://www.oreilly.com/library/view/user-story-mapping/9781491904893/)
 (Jeff Patton) already points you toward prototyping the riskiest slice before
 building it. We did the mapping — we just skipped the prototype most of the time,
-and the times we didn't, it ate too many resources up front. Same reason either
-way: cost.
+and the times we didn't, it ate too many resources up front.
 
 That math just changed. A running prototype now costs a few tokens and a coffee's
 worth of wait time. So the move is obvious — **add one more loop, before the
 expensive one.**
 
-Features clear, design mostly settled, but before writing the real stories:
-vibe-code a throwaway, hand it over, let people click a *real* thing, and pipe
-what they say straight into the slices you were going to build anyway.
+Vibe-code a throwaway, hand it over, and pipe what people say straight into the
+slices you were going to build anyway.
 
 ```
 before:  map → design → ship slice → feedback → rework shipped code → loop
@@ -35,8 +33,6 @@ after:   map → design → prototype (the cheap loop) → feedback → ship sli
 ```
 
 ## Why this isn't just a spike (or a walking skeleton)
-
-It looks like things that already exist, but it isn't quite any of them:
 
 - A [spike](https://en.wikipedia.org/wiki/Spike_(software_development)) (XP)
   produces a decision or a technical answer — it's not something a stakeholder clicks.
@@ -49,8 +45,7 @@ It looks like things that already exist, but it isn't quite any of them:
 What's new is the **cost**. A design sprint costs a week and a room; this costs a
 few tokens and a short wait. Cheap enough to build, click, and *delete* per
 feature — by the developer, in the normal flow — at higher fidelity than a façade
-and with none of the keep-it pressure of a tracer bullet. Patton's advice didn't
-change; the price of following it dropped through the floor.
+and with none of the keep-it pressure of a tracer bullet.
 
 ## The catch — which is why it's only an experiment
 
@@ -67,7 +62,9 @@ I don't know yet whether it pays off. I'm going to run it on the next feature an
 report back: did the throwaway prototype catch a "not like that" before it got
 expensive — or was the initial passive spend just... spent?
 
-The cheapest place to be wrong is in code you've already agreed to delete.
+The cheapest place to be wrong is in code you've already agreed to delete. The same
+argument, one step later in the process, is why I now
+[read the decisions before the diff](/posts/read-what-it-decided/).
 
 ## Follow-up resources
 

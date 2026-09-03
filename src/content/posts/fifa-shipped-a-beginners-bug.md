@@ -6,25 +6,25 @@ tags: ["security", "web", "til"]
 draft: false
 ---
 
-In code review — especially in consulting — I keep finding the same bug. Someone gates an
-action behind a role by hiding the button: it renders for admins, disappears for everyone
-else, the ticket closes. The POST endpoint behind it stays open to anyone who knows the URL.
+In code review I keep finding the same bug — mostly in work from people early in their
+careers: new juniors at work, and the students I mentor now and then on
+[Catrobat](https://catrobat.org)'s open-source [Catroweb](https://github.com/Catrobat/Catroweb).
+Someone gates an action behind a role by hiding the button: it renders for admins,
+disappears for everyone else, the ticket closes. The endpoint behind that button stays open
+to anyone who knows the address.
 
-I'd half-assumed this was a small-team problem — something you catch as a project matures
-and gets real review. The big platforms, with security teams and audits and real money on
-the line, surely don't ship something this basic.
+Then I read the FIFA World Cup 2026 writeup, and there it was — the same bug, at the
+biggest sporting event on earth.
 
-Then I read the FIFA World Cup 2026 writeup.
+Anyone could sign up on a public FIFA portal and end up inside the company's own
+staff directory. The screens were careful: log in as a nobody and you got a tidy
+"access denied" page. But the systems *behind* those screens handed data to anyone
+who was logged in at all — including write access to the stats and commentary going
+out on air *during* matches, 23 internal spreadsheets, and the keys to every camera
+feed. An attacker "could have rickrolled the entire World Cup."
 
-Same bug. Anyone could register on the public agent portal and land in FIFA's Microsoft
-Entra tenant. The Angular apps checked JWT roles and showed tidy "access denied" pages —
-but the backend APIs served data to *any* authenticated member anyway: write access to the
-stats and commentary going out on air *during* matches, 23 internal spreadsheets, and the
-RTMP keys for every camera. An attacker "could have rickrolled the entire World Cup."
-
-The world's biggest sporting event shipped the exact mistake I see from people on their
-first web project. Budget didn't catch it. Brand didn't catch it. The frontend check just
-*felt* like a check:
+Budget didn't catch it. Brand didn't catch it. The check on the screen just *felt*
+like a check:
 
 ```twig
 {# Twig hides the button — that's UX #}
@@ -45,8 +45,7 @@ only thing that's actually authorization.
 
 What makes this so easy to miss — for a student and for FIFA alike — is that the broken
 version *works*. The access-denied page renders, the demo looks right, QA clicks through
-and sees exactly what it should. The hole is invisible from the screen; it only shows up
-when you go around the front end and poke the API directly.
+and sees exactly what it should.
 
 Credit to bobdahacker, who found it: they could have put Subway Surfers on the world feed
 mid-match. Instead they filed a report. FIFA ignored every normal channel, so they
@@ -54,10 +53,11 @@ escalated it themselves — MediaKind, then CISA and the FBI — until it was pa
 hours. Finding the bug is the fun part. Resisting that much access and quietly getting it
 fixed is the actual job.
 
-That's the part I keep relearning: nobody is too big or too well-funded to ship the dumb
-bug. So I don't assume it's handled — I look. For every guarded action: can I hit the
-endpoint directly with a normal user's token and a guessed payload? If it returns `200`,
-the role check was decoration — side project or FIFA, same test.
+Nobody is too big or too well-funded to ship the dumb bug, so I don't assume it's
+handled — I look. For every guarded action: can I reach it directly, as an ordinary
+user, going around the screen entirely? If the answer comes back fine, the check was
+decoration. Side project or World Cup, same test — [including on my own
+sites](/posts/bot-proofing-auth-on-a-static-site/).
 
 ## Follow-up resources
 

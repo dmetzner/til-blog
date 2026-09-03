@@ -1,35 +1,52 @@
 ---
-title: "One extension codebase for Chrome and Firefox — signing is the only real fork"
-description: "The same unpacked MV3 folder loads in both browsers; the divergence is how you get a permanent install, and Firefox's signing story is friendlier than its reputation."
+title: "The Firefox port I budgeted for didn't exist"
+description: "One browser-extension folder loads in both Chrome and Firefox unchanged. The only real fork is how you install it permanently — and the reputations there are backwards."
 pubDate: 2026-07-04
 tags: ["web", "tooling", "til"]
 draft: false
 ---
 
-We needed a header-injection extension at work for feature-flag testing. Every
-option in the stores wanted an account, hid the basics behind a paywall, or —
-like ModHeader, the one everyone reaches for — now runs ads and nudges you
-toward a subscription inside what is, functionally, a devtool. I'd assumed that
-friction bought something: that setting a request header was fiddly enough to be
-worth paying for. Then I looked at what it actually takes.
+We needed a small tool at work: something to add a header to browser requests so
+we could test feature flags. Every option in the stores wanted an account,
+paywalled the basics, or — the one everyone reaches for — now runs ads and nudges
+you toward a subscription inside what is, functionally, a developer tool.
 
-Manifest V3 hands you the whole mechanism. [`declarativeNetRequest`](https://developer.mozilla.org/en-US/docs/Mozilla/Add-ons/WebExtensions/API/declarativeNetRequest)
-sets request headers as a single dynamic rule with a `modifyHeaders` action; a
-few dozen lines do the work and everything else is just UI. A weekend later we
-had [Overhead](https://overhead.metzner.uk) — a small, public, MIT-licensed MV3
-devtool that injects request headers, no account, no ads, with one convenience
-the paid ones lack: it imports the known feature-flag headers of our systems
-straight from an endpoint or a JSON file, so nobody has to guess header names.
+I'd assumed that friction bought something. That the job was fiddly enough to be
+worth paying for. Then I looked at what it actually takes, and the browser
+already does the whole thing: a few dozen lines do the work, and everything else
+is the interface around it. A weekend later we had
+[Overhead](https://overhead.metzner.uk) — free, MIT, no account, no ads, plus one
+convenience the paid ones don't have: it can pull our own systems' flag names
+straight from a URL, so nobody has to remember or guess them.
 
-Then I budgeted real time for "the Firefox port". There wasn't one. The same
-folder loads unpacked in Chrome and as a temporary add-on in Firefox, unchanged.
+Then I budgeted real time for the Firefox version. There wasn't one. The same
+folder loads in both browsers, unchanged, with three small tricks that live
+entirely in the plumbing.
 
-Three tricks carry it. Every API call goes through
-`globalThis.browser ?? globalThis.chrome`, which picks the promise-based
-WebExtension namespace on whichever browser is running. The manifest declares
-the background script under *both* keys — Chromium reads `service_worker`,
-Firefox reads `scripts`, and each silently ignores the one it doesn't
-understand:
+Where the two genuinely differ is **installing it permanently**, and here the
+reputations are backwards. Chrome has no approval step at all — and also no real
+way to install a private extension: you load the folder as a developer and live
+with the warning banner, unless you run company-managed browsers. Firefox
+*requires* every extension to be signed, even one you're only handing to your own
+team, which sounds like exactly the bureaucracy it's famous for. Except that path
+is fully automated: no store page, no human reading it, no waiting. One command
+in CI, and a couple of minutes later a signed file is attached to the release.
+Anyone on the team drags it in, and it survives restarts.
+
+Two catches worth knowing before you copy this. A privately signed extension
+doesn't update itself — that needs an update file you host somewhere, which we
+haven't bothered with. And signing is one-way: a version number can only ever be
+signed once, so a botched upload means bumping the number and going again.
+
+The rule of thumb: check whether the port you're dreading actually exists before
+you plan around it.
+
+## The three tricks, in code
+
+Every API call goes through `globalThis.browser ?? globalThis.chrome`, which
+picks the promise-based namespace on whichever browser is running. The manifest
+declares the background script under *both* keys — Chromium reads
+`service_worker`, Firefox reads `scripts`, and each ignores the other silently:
 
 ```json
 "background": {
@@ -39,38 +56,22 @@ understand:
 }
 ```
 
-And the manifest sets `browser_specific_settings.gecko.id` — for MV3, AMO no
-longer assigns an ID at submission, and `storage.sync` won't work without one.
+The header work itself is one dynamic
+[`declarativeNetRequest`](https://developer.mozilla.org/en-US/docs/Mozilla/Add-ons/WebExtensions/API/declarativeNetRequest)
+rule with a `modifyHeaders` action. And the manifest sets
+`browser_specific_settings.gecko.id` — under MV3, AMO no longer assigns an ID at
+submission, and `storage.sync` won't work without one.
 
-Where the browsers genuinely fork is **distribution**. For a self-distributed
-tool you don't need a public store listing on either side, and here the
-reputations are backwards. Chrome has no signing step at all — but also
-effectively no self-distribution path: load-unpacked is it (persistent, but
-with a developer-mode nag), unless you control enterprise policies. Firefox
-*requires* signing even for self-distributed
-add-ons, which sounds like bureaucracy — except the **unlisted channel** is
-fully automated. Automated validation, immediate signature, no human review,
-no store page. One CI step:
+Signing runs through the unlisted channel:
 
 ```bash
 npx web-ext sign --channel=unlisted \
   --api-key "$AMO_JWT_ISSUER" --api-secret "$AMO_JWT_SECRET"
 ```
 
-The API credentials come from a form on AMO. We wired this into a GitHub
-Actions workflow on version tags; a signed `.xpi` lands on the release a
-couple of minutes later, and anyone on the team drags it into Firefox for an
-install that survives restarts. So the browser famous for strict signing ends
-up with the *smoother* permanent-install story for self-distributed tools.
-
-The catch: an unlisted `.xpi` doesn't auto-update — that needs an `update_url`
-in the manifest plus a self-hosted `updates.json`, which we haven't bothered
-with yet. And signing is forever-ish: each version number can only be signed
-once per channel, so a botched upload means bumping the version.
-
-Rule of thumb: write against `browser ?? chrome`, declare the background
-script twice, set a gecko ID from day one — and stop treating Firefox signing
-as a reason to ship Chrome-only.
+The credentials come from a form on AMO. We run this from a GitHub Actions
+workflow on version tags, and the signed `.xpi` lands on the release. Auto-update
+would need an `update_url` in the manifest plus a self-hosted `updates.json`.
 
 ## Follow-up resources
 

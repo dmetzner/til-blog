@@ -31,11 +31,16 @@ echo "$json" | jq -r '.cost.total_lines_added'        # +63
 echo "$json" | jq -r '.context_window.used_percentage' # 22
 ```
 
-The part I didn't expect was the usage limits. `rate_limits.five_hour` and
-`rate_limits.seven_day` come right in the blob — each with a `used_percentage`
-and a `resets_at` timestamp. That's the entire reason I built the thing, and it
-turned out to already be sitting there. Now the prompt answers "am I about to hit
-the limit" before I ask. `/usage` is a command I stopped typing.
+The part I didn't expect: how much of my quota I've used, and when it resets, is
+already in there too — both the five-hour window and the weekly one. Now the
+prompt answers "am I about to run out" before I ask, and
+`/usage` is a command I stopped typing.
+
+```bash
+# each window arrives with a percentage used and a reset timestamp
+echo "$json" | jq -r '.rate_limits.five_hour.used_percentage'
+echo "$json" | jq -r '.rate_limits.seven_day.resets_at'
+```
 
 Drop the script path in `~/.claude/settings.json` and it's global across every
 project. Add `refreshInterval: 1` and it keeps ticking while you're idle, so the
@@ -44,10 +49,6 @@ project. Add `refreshInterval: 1` and it keeps ticking while you're idle, so the
 One caveat worth knowing: `rate_limits` only shows up on Pro/Max, and only after
 the first message of a session — so a brand-new session starts without it for a
 beat. Fine once you handle the empty case.
-
-The fun part isn't the bar. It's that "build me a status line that shows X, Y and
-Z" is now the whole task — and everything you'd want to put on it is already in
-the envelope.
 
 ## Follow-up resources
 

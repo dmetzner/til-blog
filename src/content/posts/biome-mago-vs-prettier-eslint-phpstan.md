@@ -1,34 +1,68 @@
 ---
-title: "Trading four linters for two: Biome and Mago vs my Prettier/ESLint/PHPStan/Fixer stack"
-description: "A theoretical, table-by-table comparison of the Rust linting toolchains Biome and Mago against the Node/PHP incumbents — before I migrate a real project and report the actual numbers."
+title: "Four tools do three jobs, and I wait on all of them"
+description: "Both my ecosystems grew a single fast binary that replaces most of the code-quality stack. Two thirds of that swap is safe; the third part has to earn it."
 pubDate: 2026-06-21
 tags: ["rust", "php", "tooling", "til"]
 draft: false
 ---
 
-Every project I maintain runs four separate code-quality tools. On the JS/TS
-side: [Prettier](https://prettier.io) to format and [ESLint](https://eslint.org)
-to lint. On the PHP side: [PHPStan](https://phpstan.org) to find type-level bugs
-and [PHP-CS-Fixer](https://cs.symfony.com) to format. Four tools, four config
-files, two ecosystems, and a CI lint stage that takes long enough that I tab away
-to do something else while it runs.
+Every project I maintain runs four separate code-quality tools — two on the
+JavaScript side, two on the PHP side. Four config files, two ecosystems, and a
+check stage slow enough that I tab away to do something else while it runs.
 
-None of that is broken. It's just *a lot* — and it's slow. So when I noticed that
-both ecosystems are independently growing a single fast Rust binary to do most of
-that work — [Biome](https://biomejs.dev) on the JS side, [Mago](https://mago.carthage.software)
-on the PHP side — the symmetry got my attention. Two languages, the same idea:
-collapse the toolchain into one oxidized binary and make it fast enough that you
-stop tabbing away.
+None of that is broken. It's just *a lot*, and it's slow.
 
-This post is the paper comparison I did before committing to anything. **It is
-explicitly theoretical.** I haven't migrated yet. In a few weeks I'm moving
-[Catroweb](https://github.com/Catrobat/Catroweb) — a real Symfony + JS project,
-not a toy — over to these tools and I'll report what actually happened: real CI
-numbers, real rule parity, real false positives. So treat every speed multiplier
-below as a *published benchmark, not my measurement*. The point today is to map
-the terrain and find where the risk is.
+Then I noticed both ecosystems independently growing the same idea: one fast
+program, written in Rust, that does most of that work on its own —
+[Biome](https://biomejs.dev) for JavaScript, [Mago](https://mago.carthage.software)
+for PHP.
 
-## The stack today
+The thing worth seeing is that my four tools only do **three jobs**. One makes
+code look the same everywhere. One catches sloppy patterns. And one reasons about
+what the code *means* — follows the values through the program to prove things
+like "this can be empty here, and you didn't check". The first two are about the
+shape of code. The third is about its meaning.
+
+Shape is a solved problem. If the new tool lays code out consistently, the change
+costs one big ugly commit and then I never think about it again. Meaning is years
+of accumulated depth in the old tools, and a young program claiming the same
+ground is a claim, not a fact.
+
+So the plan is a hedge rather than a migration: **swap the shape layer now, put
+the meaning layer on probation.** Run the new analyzer *beside* the old one, diff
+what each finds, and only retire the old one if the new one catches what it
+catches. If it doesn't, the honest outcome isn't failure — it's a hybrid: the fast
+tools on the everyday loop, the old analyzer kept for the deep pass. That's still
+fewer moving parts where it matters.
+
+One thing I want to be straight about: every speed multiplier you'll read for
+these tools — and they're enormous — comes from someone else's benchmark on
+someone else's code. Not mine. Even at half the claimed figures it's the
+difference between a check stage you wait on and one you don't notice.
+
+The new tools deliberately give you
+*fewer* knobs; "there's one way to format this" is the point. The old ones let you
+bend almost any rule, and if your team has years of idiosyncratic style encoded in
+config, expect to lose some of it. For me that's mostly a relief. If you've got
+fifty custom rules doing load-bearing work, audit them before you assume parity.
+
+## When not to bother yet
+
+- **Your check stage is already fast.** A small repo doesn't need this; the win
+  scales with size.
+- **You lean on the deepest analysis rules, or a big custom config.** That's
+  exactly the part that isn't proven. Wait, or run both.
+- **You can't stomach one giant reformat commit** in a repo full of in-flight
+  branches. Time it for a quiet week.
+
+That's the theory, written before touching anything real. I then ran it against
+[Catroweb](https://github.com/Catrobat/Catroweb) — a genuine Symfony and
+JavaScript codebase, not a toy — and
+[the numbers came out differently than I expected](/posts/catroweb-biome-mago-real-numbers/).
+
+## The tables
+
+Where things stood mid-2026, and what maps onto what.
 
 | Tool | Language | Job | Written in |
 |------|----------|-----|------------|
@@ -37,13 +71,9 @@ the terrain and find where the risk is.
 | PHP-CS-Fixer | PHP | Formatting / code style | PHP |
 | PHPStan | PHP | Static analysis (type-level bugs) | PHP |
 
-Four tools, but really three *jobs*: format, lint, and deep-analyze. Note the
-asymmetry — JS has no widely-used standalone "type-level analyzer" the way PHP
-has PHPStan, because for JS that role is mostly played by `tsc` plus
-typescript-eslint's type-aware rules. Hold onto that; it's where the comparison
-gets interesting.
-
-## What maps to what
+Note the asymmetry: JS has no widely-used standalone deep analyzer the way PHP has
+PHPStan, because for JS that role is played by `tsc` plus typescript-eslint's
+type-aware rules.
 
 | Incumbent | Rust replacement | Clean swap? |
 |-----------|------------------|-------------|
@@ -52,17 +82,7 @@ gets interesting.
 | PHP-CS-Fixer | Mago (formatter) | Yes — opinionated, convention-over-config |
 | PHPStan | Mago (analyzer) | **Not yet** — this is the risky one |
 
-Two of these are easy. Formatting is a solved problem: if Biome and Mago produce
-output that's stable and close enough to what I have now, the diff is a one-time
-cost and then I never think about it again. Linting at the style/syntax level is
-likewise a comfortable swap.
-
-The bottom-right cell is the whole story. That's where I need real data.
-
-## Speed — the headline, with an asterisk
-
-This is what everyone leads with, so here it is — and here's the asterisk:
-**these are vendors' and bloggers' benchmarks on their repos, not mine.**
+Published speed claims:
 
 | Comparison | Claimed speedup | Source of the number |
 |------------|-----------------|----------------------|
@@ -70,64 +90,15 @@ This is what everyone leads with, so here it is — and here's the asterisk:
 | Biome vs ESLint (lint) | 10–20× (one bench: 0.8s vs 45s on 10k files) | community migration write-ups |
 | Mago vs PHP-CS-Fixer / PHPStan | ~30–40× | reported on a 2,400-file Laravel app |
 
-Even if the real numbers are half of these, that's the difference between a CI
-lint stage you wait on and one you don't notice. The mechanism is unsurprising:
-Rust binaries with no interpreter startup, real parallelism across cores, and no
-`node_modules` resolution tax. The interesting question isn't *whether* they're
-faster — they obviously are — it's whether you give anything up to get there.
-
-## Where it breaks down: the analysis gap
-
-Here's the part that took me longest to understand, and the part I'd tell anyone
-eyeing this swap to focus on.
-
-**Formatting and style-linting are about the shape of code. Static analysis is
-about its meaning.** PHPStan and typescript-eslint's type-aware rules don't just
-read your file — they build a model of your types and follow them across function
-boundaries to prove things like "this can be `null` here" or "this method doesn't
-exist on that union." That's years of accumulated inference depth.
-
-- **Biome v2** (current stable v2.5, ~508 rules) added type-aware linting
-  *without* requiring the TypeScript compiler — impressive,
-  and fast, but it's Biome's own inference, not full `tsc` type resolution. The
-  deepest typescript-eslint rules that need a complete type graph aren't all
-  replicated. For most projects Biome covers the common cases; for the gnarly
-  type-level rules, you may still keep `tsc`/typescript-eslint around.
-- **Mago** (current v1.30, June 2026) has moved faster than I expected: it now
-  ships an actual *static analyzer* alongside its linter and formatter, aiming
-  squarely at PHPStan/Psalm territory. But "ships an analyzer" and "matches
-  PHPStan's depth and rule ecosystem on a large real codebase" are different
-  claims, and only the second one matters for replacing PHPStan in production.
-
-So my working hypothesis going into the Catroweb migration:
-
-> Format and lint — swap with confidence. Deep static analysis — run Mago's
-> analyzer *alongside* PHPStan first, diff the findings, and only drop PHPStan
-> if Mago catches what it catches. Same for Biome vs typescript-eslint's
-> type-aware rules.
-
-That hedge — keep the old analyzer until the new one earns its retirement — is
-the entire low-risk path here. The speed win on format+lint is free; the analysis
-layer has to be *proven*, not assumed.
-
-## Config and developer experience
+The mechanism is unsurprising: native binaries with no interpreter startup, real
+parallelism, no `node_modules` resolution tax.
 
 | Dimension | Old stack | Biome / Mago |
 |-----------|-----------|--------------|
 | Config files | 4 (`.prettierrc`, `eslint.config.js`, `.php-cs-fixer.php`, `phpstan.neon`) | ~2 (`biome.json`, `mago.toml`) |
 | Install footprint | ESLint+Prettier pull a `node_modules` tree; PHP tools via Composer | single static binary per language |
-| Philosophy | highly configurable (esp. ESLint, PHP-CS-Fixer) | convention over configuration, à la `gofmt`/`rustfmt` |
-| Editor support | mature everywhere | Biome mature; Mago has a JetBrains/PhpStorm plugin and LSP, newer |
-
-The convention-over-config stance is a genuine trade, not pure upside. ESLint and
-PHP-CS-Fixer let you bend almost any rule; Biome and Mago deliberately give you
-fewer knobs because "there's one way to format this" is the point. If your team
-has strong idiosyncratic style rules encoded over years, expect to *lose* some of
-them. For me that's mostly a relief — fewer bikeshed configs — but if you've got a
-50-rule custom ESLint config doing load-bearing work, audit it before you assume
-parity.
-
-## Maturity check
+| Philosophy | highly configurable | convention over configuration, à la `gofmt`/`rustfmt` |
+| Editor support | mature everywhere | Biome mature; Mago has a JetBrains plugin and LSP, newer |
 
 | Tool | Version (mid-2026) | Status | Notes |
 |------|--------------------|--------|-------|
@@ -136,42 +107,14 @@ parity.
 | ESLint | v9 (flat config) | Mature | Type-aware rules via typescript-eslint |
 | PHPStan | v2.x | Mature | The depth benchmark for PHP analysis |
 
-Biome is past the "is this safe?" question — it's a default for new JS projects
-now. Mago is solid for format+lint and improving quickly on analysis, but it's
-the younger tool and the analyzer is where I'd keep my guard up.
+Biome v2's type-aware linting works *without* the TypeScript compiler — fast, but
+it's Biome's own inference, so the deepest typescript-eslint rules aren't all
+replicated.
 
-## What I'll actually measure on Catroweb
-
-So the experiment isn't "is Rust faster" (yes). It's a checklist:
-
-1. **Wall-clock CI lint+format time**, old stack vs new, on the same runner.
-2. **Format diff size** — how much churn does the one-time Biome/Mago reformat create?
-3. **Lint rule parity** — which ESLint / PHP-CS-Fixer rules have no Biome/Mago equivalent?
-4. **Analysis parity** — run Mago's analyzer next to PHPStan and count what each finds that the other misses. Same for Biome vs typescript-eslint.
-5. **False positives** — the silent tax that makes a tool annoying regardless of speed.
-
-If format+lint comes out clean and the analysis layer is even 80% of PHPStan,
-this is an easy win. If the analyzer misses real bugs PHPStan catches, then the
-honest outcome is a *hybrid*: Biome + Mago for the fast format/lint loop,
-PHPStan/typescript-eslint kept for deep analysis. That's still fewer moving parts
-on the hot path, which is most of the value.
-
-## When not to bother (yet)
-
-- **Your lint stage is already fast.** A small repo where ESLint runs in two
-  seconds doesn't need this. The win scales with codebase size.
-- **You lean hard on PHPStan/Psalm's deepest rules or a big custom ESLint config.**
-  The analysis and configurability gaps will bite you. Wait, or run hybrid.
-- **You can't stomach a one-time reformat diff** in a repo with lots of in-flight
-  branches — the format churn will cause merge pain. Time it for a quiet window.
-
-My rule of thumb going in: **swap the format and lint layer now, treat the
-analysis layer as on probation.** The speed is real and the unification is real;
-the only thing I refuse to take on faith is whether a year-old Rust analyzer
-matches a tool that's been finding PHP type bugs for the better part of a decade.
-
-That's the theory. In a few weeks I'll have run it against a real codebase and
-I'll post the numbers — including whichever part of this turns out to be wrong.
+The five things worth measuring, in order: wall-clock check time on the same
+runner; the size of the one-time reformat diff; lint rule parity; analysis parity
+run side by side; and false positives, the silent tax that makes a tool annoying
+no matter how fast it is.
 
 ## Follow-up resources
 

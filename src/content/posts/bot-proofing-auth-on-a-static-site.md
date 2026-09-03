@@ -1,27 +1,59 @@
 ---
-title: "Bot-proofing auth on a static site: Turnstile + Supabase, in the right order"
-description: "No server of your own, but you still need to stop mass signups. Cloudflare Turnstile + Supabase does it — as long as you deploy the two halves in the order that doesn't lock everyone out."
+title: "I locked myself out of my own app with one toggle"
+description: "A static site can have real signup protection without running a server of your own. The dangerous part isn't the setup — it's the order you switch the two halves on."
 pubDate: 2026-07-24
 tags: ["security", "web", "til"]
 draft: false
 ---
 
-[Verso](https://verso.metzner.uk) has accounts now — email + password, via
-Supabase Auth. The moment you have a public signup form with no server of your
-own in front of it, you have a bot problem: someone will find the endpoint and
-create ten thousand junk accounts, burning your free-tier quota for fun.
+[Verso](https://verso.metzner.uk) has accounts now — email and password. The
+moment a signup form is public and there's no server of mine in front of it, I
+have a bot problem: someone finds the form, creates ten thousand junk accounts,
+and burns my free quota for the fun of it.
 
-The fix is [Cloudflare Turnstile](https://www.cloudflare.com/products/turnstile/),
-a privacy-friendly CAPTCHA (no Google, usually invisible). What I actually
-learned wiring it in was less about the widget and more about the *order* you turn
-things on — get it wrong and you lock out every real user too.
+The fix is a challenge in front of the form. I used
+[Cloudflare Turnstile](https://www.cloudflare.com/products/turnstile/) — no
+Google involved, and for a real person it's usually invisible; you never see a
+puzzle. The clever part is that I don't have to check the answer myself: the form
+passes the challenge result to the service that holds my accounts, and *that*
+service asks Cloudflare whether it's genuine. The security half runs inside a
+back end I never had to build.
 
-## How the two halves fit together
+Then I locked myself out of my own app.
 
-Turnstile is a client widget + a server verification, and Supabase slots neatly
-into both ends. The widget renders in the form and hands you a token; you pass
-that token to Supabase, and Supabase verifies it server-side with your secret
-before it will create the account:
+There are two switches, and they're independent: the form has to start *sending*
+proof it passed the challenge, and the account service has to start *demanding*
+it. I flipped the demanding one first. Every signup arriving without proof was
+refused instantly — which was all of them, mine included, until the new form was
+live. **Widen access before you restrict it.** Ship the sending half, watch real
+signups still work, and only then make the other side insist on it. Turning the
+feature back off runs in reverse: relax the demand first, remove the widget
+after.
+
+The second thing that bit me is quieter. The challenge is pinned to a list of
+addresses it's allowed to appear on, and on any other address it simply refuses
+to complete — no error, no message, you just sit there watching it never finish.
+A site like this one lives at three addresses at once: the real domain, the
+preview domain the host generates for every deploy, and my own laptop. Miss one
+and it's broken exactly where you test.
+
+I left the "click the link in your email"
+step off for now — it's real friction for a bot, but it's also a wall new people
+bounce off, and it means running outbound mail I don't run. And when a login
+fails, the message is deliberately vague: "check your email and password". Saying
+*no such user* would quietly confirm which addresses have accounts, one guess at
+a time. The single exception is a failed challenge, which gets its own message,
+because that's the one thing a real person can actually do something about.
+
+Same lesson as [FIFA's](/posts/fifa-shipped-a-beginners-bug/), from the other
+end: the interesting failures aren't in the code, they're in what you switched on
+first.
+
+## The wiring, in code
+
+The client hands a token to Supabase; Supabase verifies it with Cloudflare before
+it will create the account. You never call `siteverify` yourself — the **secret**
+lives in Supabase → Auth → Attack Protection, and never in the repo:
 
 ```ts
 // client: the widget's callback stashes a token, which the signup call forwards
@@ -34,54 +66,8 @@ export async function signUp(email: string, password: string, captchaToken?: str
 }
 ```
 
-You never verify the token yourself. The site key is public (it's in the widget);
-the **secret** goes into Supabase → Auth → Attack Protection, and Supabase calls
-Cloudflare's `siteverify` for you. That's the whole appeal — the "server side" of
-a CAPTCHA runs inside a backend you didn't have to build.
-
-Loading the widget script is best-effort, so a blocked CDN can't wedge the form:
-
-```ts
-s.onerror = () => resolve(); // don't hang the login form if the script is blocked
-```
-
-## The sharp edge: deploy the client *before* flipping the switch
-
-Here's the mistake that's very easy to make and very annoying to debug. There are
-two independent switches:
-
-1. **Client** sends a `captchaToken` (you deploy the widget).
-2. **Server** *requires* a `captchaToken` (you enable CAPTCHA in Supabase).
-
-If you flip switch 2 before switch 1 is live, Supabase starts rejecting every
-signup that arrives without a token — which is *all of them*, including yours,
-until the new client is deployed. You've locked out the whole world with a
-setting toggle.
-
-So the order is non-negotiable:
-
-1. Ship the client that renders Turnstile and forwards the token. Verify real
-   signups still work (server isn't enforcing yet, token is just along for the
-   ride).
-2. *Then* enable CAPTCHA server-side in Supabase.
-
-Same discipline applies to turning it *off*: relax the server first, then remove
-the widget. Always widen before you narrow.
-
-## Every test hostname must be on the widget's allow-list
-
-The second thing that bit me: a Turnstile widget is pinned to a list of
-hostnames, and it silently refuses to solve on any domain that isn't on it. A
-static site like this one gets deployed to *several* domains at once:
-
-- the custom domain (`verso.metzner.uk`)
-- the platform preview domain (`*.pages.dev` on Cloudflare Pages)
-- `localhost` for local dev
-
-Miss one and the widget just… doesn't work there, with no obvious error — you sit
-staring at a challenge that never completes. Add every hostname you'll ever load
-the form on to the widget config up front. The site key itself is fine to commit;
-it's public by design:
+The site key is public by design — it's visible in the widget anyway — so it can
+be committed, and an empty one is a clean off-switch:
 
 ```ts
 // the public site key; the matching SECRET lives in Supabase, never in the repo
@@ -89,37 +75,16 @@ export const TURNSTILE_SITE_KEY = '0x4AAAAAAD6B0V8C7RunRZin';
 export const captchaOn = TURNSTILE_SITE_KEY.length > 0;
 ```
 
-An empty key means the feature is off — no widget, no third-party request, signup
-just works without a token. Handy for keeping the whole thing togglable.
-
-## Two smaller decisions worth calling out
-
-**Email confirmation vs. instant login.** Supabase can require users to click a
-link in a confirmation email before their account works. That's real bot friction
-— but it also means running outbound email, and a confirmation step is a wall new
-users bounce off. Verso keeps confirmations off for now (no outbound mail set up)
-and leans on Turnstile as the gate; the login form still handles the
-"not confirmed yet" case so flipping it on later is a config change, not a
-rewrite.
-
-**Don't leak *why* a login failed.** When sign-in fails, the form shows one
-generic "check your email and password" message rather than "no such user" or
-"wrong password." Distinguishing the two tells an attacker which emails are
-registered — a free account-enumeration oracle. The one exception is that a
-CAPTCHA failure gets its own message, because that one's actionable by a real
-user:
+Loading the widget script is best-effort, so a blocked CDN can't wedge the login
+form:
 
 ```ts
+s.onerror = () => resolve(); // don't hang the login form if the script is blocked
+
 if (s.includes('captcha')) return t('auth.errCaptcha');
 if (s.includes('not confirmed')) return t('auth.errUnconfirmed');
 if (s.includes('password') || s.includes('email')) return t('auth.error'); // generic
 ```
 
-## The takeaway
-
-You can bolt real bot protection onto a serverless static site without running
-anything yourself — Turnstile does the challenge, Supabase does the verification.
-The only genuinely dangerous part is operational: **widen access before you
-restrict it.** Deploy the client that sends the token, confirm it works, *then*
-make the server demand it. Do it the other way round and your first "test" is
-locking yourself out of your own app.
+Hostnames to allow-list up front: the custom domain (`verso.metzner.uk`), the
+platform preview domain (`*.pages.dev` on Cloudflare Pages), and `localhost`.
