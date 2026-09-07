@@ -7,6 +7,22 @@ updates:
       interval: "weekly"
     open-pull-requests-limit: 10
     groups:
+      # Peer-locked families come FIRST: Dependabot puts a dependency in the first group it
+      # matches, and dependencies matching no group "are updated in individual pull requests".
+      # Two ways that splits a family that must move together:
+      #   - the catch-all below takes minor+patch only, so a MAJOR matches nothing and opens
+      #     its own PR (this broke curio's main on 2026-09-07: vitest and @vitest/coverage-v8
+      #     went out as separate majors, one merged alone, `npm ci` died on ERESOLVE);
+      #   - `dependency-type` splits a family that straddles dependencies/devDependencies.
+      # These groups use `patterns` and carry `major`, so neither can happen.
+      astro:
+        patterns:
+          - "astro"
+          - "@astrojs/*"
+        update-types:
+          - "major"
+          - "minor"
+          - "patch"
       # one PR for routine minor/patch bumps instead of many
       minor-and-patch:
         update-types:
