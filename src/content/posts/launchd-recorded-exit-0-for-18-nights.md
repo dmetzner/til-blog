@@ -3,7 +3,7 @@ title: "launchd recorded exit 0 for 18 nights"
 description: "A step of my nightly job failed 18 mornings running while launchd recorded success. Neither the exit code nor the log's age caught it."
 pubDate: 2026-10-06
 tags: ["tooling", "testing", "til"]
-draft: true
+draft: false
 ---
 
 Every morning at 07:15 my Mac runs a script that pulls my repos, rebuilds a personal
