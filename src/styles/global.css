@@ -2,6 +2,7 @@
 
 :root,
 :root[data-theme="dark"] {
+  color-scheme: dark; /* native scrollbars + form controls follow the theme */
   --bg: #070708;
   --bg-soft: #0d0d10;
   --panel: rgba(255, 255, 255, 0.025);
@@ -20,6 +21,7 @@
 }
 
 :root[data-theme="light"] {
+  color-scheme: light; /* native scrollbars + form controls follow the theme */
   --bg: #f4f4f6;
   --bg-soft: #ffffff;
   --panel: rgba(12, 12, 24, 0.03);
