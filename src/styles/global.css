@@ -414,11 +414,11 @@ a {
 [data-preview] .is-draft-hidden {
   display: revert;
 }
-[data-preview] .draft-gate {
-  display: none;
-}
 .draft-gate {
   padding: 40px 0 80px;
+}
+[data-preview] .draft-gate {
+  display: none;
 }
 .draft-banner {
   display: inline-block;
