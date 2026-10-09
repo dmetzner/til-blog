@@ -127,7 +127,7 @@
 		var data = window.goatcounter.get_data(vars || {})
 		if (data.p === null)  // null from user callback.
 			return
-		data.rnd = Math.random().toString(36).substr(2, 5)  // Browsers don't always listen to Cache-Control.
+		data.rnd = Math.random().toString(36).slice(2, 7)  // Browsers don't always listen to Cache-Control.
 
 		var endpoint = get_endpoint()
 		if (!endpoint)
@@ -166,10 +166,10 @@
 
 	// Get a query parameter.
 	window.goatcounter.get_query = function(name) {
-		var s = location.search.substr(1).split('&')
+		var s = location.search.slice(1).split('&')
 		for (var i = 0; i < s.length; i++)
 			if (s[i].toLowerCase().indexOf(name.toLowerCase() + '=') === 0)
-				return s[i].substr(name.length + 1)
+				return s[i].slice(name.length + 1)
 	}
 
 	// Track click events.
@@ -182,7 +182,7 @@
 				goatcounter.count({
 					event:      true,
 					path:       (elem.dataset.goatcounterClick || elem.name || elem.id || ''),
-					title:      (elem.dataset.goatcounterTitle || elem.title || (elem.innerHTML || '').substr(0, 200) || ''),
+					title:      (elem.dataset.goatcounterTitle || elem.title || (elem.innerHTML || '').slice(0, 200) || ''),
 					referrer:   (elem.dataset.goatcounterReferrer || elem.dataset.goatcounterReferral || ''),
 					no_session: ['1', 't', 'true'].indexOf((elem.dataset.goatcounterNoSession || '').toLowerCase()) !== -1,
 				})
