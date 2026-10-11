@@ -9,17 +9,32 @@ const KEY = "theme";
 const ORDER: Pref[] = ["system", "light", "dark"];
 const root = document.documentElement;
 
+// localStorage throws when site data is blocked. Unguarded, that throw at module top level
+// aborted this whole script: no legal modal, no copy buttons, no share.
+function load(key: string): string | null {
+  try {
+    return localStorage.getItem(key);
+  } catch {
+    return null;
+  }
+}
+function save(key: string, value: string | null) {
+  try {
+    if (value === null) localStorage.removeItem(key);
+    else localStorage.setItem(key, value);
+  } catch {}
+}
+
 const systemTheme = (): "light" | "dark" =>
   matchMedia("(prefers-color-scheme: light)").matches ? "light" : "dark";
 
 const storedPref = (): Pref => {
-  const v = localStorage.getItem(KEY);
+  const v = load(KEY);
   return v === "light" || v === "dark" ? v : "system";
 };
 
 function applyPref(pref: Pref) {
-  if (pref === "system") localStorage.removeItem(KEY);
-  else localStorage.setItem(KEY, pref);
+  save(KEY, pref === "system" ? null : pref);
   root.dataset.themePref = pref;
   root.dataset.theme = pref === "system" ? systemTheme() : pref;
   document
@@ -44,7 +59,7 @@ document.querySelector("[data-theme-toggle]")?.addEventListener("click", () => {
 // have no markup to hide, so they go through t() instead.
 // First paint is set by the inline bootstrap.
 function applyLang(lang: "en" | "de") {
-  localStorage.setItem("lang", lang);
+  save("lang", lang);
   root.dataset.lang = lang; // document stays lang="en"; only fragments toggle
 }
 /** the current UI string, picked from a pair, for text that JS creates */
