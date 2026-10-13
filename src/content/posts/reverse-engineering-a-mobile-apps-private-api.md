@@ -204,7 +204,7 @@ jadx -d out --no-res -j 8 base.apk
 
 ### Step 3: the good part — recovering obfuscated annotations
 
-The app used [Retrofit](https://square.github.io/retrofit/), which is a gift: HTTP calls
+The app used [Retrofit](https://github.com/square/retrofit), which is a gift: HTTP calls
 are declared as annotated interface methods, so the API surface is *structural* rather
 than scattered through call sites:
 
