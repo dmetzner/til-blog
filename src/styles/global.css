@@ -304,12 +304,14 @@ a {
   border: none;
   padding: 0;
 }
-/* tables scroll inside their own box so a wide row never widens the page */
-.prose table {
-  display: block;
+/* tables scroll inside their own box so a wide row never widens the page
+   (the wrapper is added by the scrollableTables hast plugin in astro.config.mjs) */
+.prose .table-scroll {
   max-width: 100%;
   overflow-x: auto;
   -webkit-overflow-scrolling: touch;
+}
+.prose table {
   border-collapse: collapse;
   font-size: 0.92rem;
 }
