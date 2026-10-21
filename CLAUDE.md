@@ -38,8 +38,8 @@ blocks the Pages deploy. Don't downgrade the workflow to `withastro/action` (it 
 
 ## Stack
 
-- Astro content collections (glob loader), static output. **npm** (not pnpm). Node and
-  dependency versions: `package.json`.
+- Astro content collections (glob loader), static output. **npm** (not pnpm). Node ≥ 22.12
+  (Astro's floor; CI pins 22 in `deploy.yml`). Dependency versions: `package.json`.
 - Biome (lint+format on `.ts`/`.js`/`.json` — **not** `.astro`), Vitest, `astro check`.
 - No CSS framework — one hand-rolled `src/styles/global.css`.
 - Deploys to GitHub Pages on every push to `main` (`.github/workflows/deploy.yml`), custom
