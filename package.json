@@ -17,7 +17,7 @@
     "@astrojs/markdown-satteri": "^0.4.3",
     "@astrojs/rss": "^4.0.19",
     "@astrojs/sitemap": "^3.7.4",
-    "@sentry/browser": "^11.6.0",
+    "@sentry/browser": "^11.8.0",
     "astro": "^7.4.0"
   },
   "devDependencies": {
@@ -25,6 +25,6 @@
     "@biomejs/biome": "^2.5.15",
     "sharp": "^0.35.5",
     "typescript": "^6.0.3",
-    "vitest": "^5.0.3"
+    "vitest": "^5.0.5"
   }
 }
