@@ -33,7 +33,7 @@ title: "Your title"
 description: "One-line summary (shown in lists, feeds, and meta)."
 pubDate: 2026-06-19
 tags: ["astro", "til"]
-draft: false        # true = hidden in prod, still visible in dev
+draft: false        # true = unlisted: kept out of lists and feeds, page still built at its URL
 ---
 
 Your note. Code fences get syntax highlighting + a copy button.
